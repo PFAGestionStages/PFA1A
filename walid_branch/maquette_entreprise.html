@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StageBot Entreprise — OCP Group</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ── Two-color palette: Light Cyan + Powder Blue ── */
+    --navy:        #2c6e82;
+    --navy-mid:    #7ab3c9;
+    --navy-light:  #E0FBFC;
+
+    --teal:        #98C7D9;
+    --teal-light:  #E0FBFC;
+
+    --accent:      #98C7D9;
+    --accent-mid:  #7ab3c9;
+    --accent-light:#E0FBFC;
+    --accent-glow: rgba(152,199,217,.2);
+
+    --surface:     #f0fbfc;
+    --white:       #ffffff;
+    --border:      #c5f2f4;
+    --text:        #1e4d5c;
+    --muted:       #2c6e82;
+    --light:       #98C7D9;
+
+    --success:     #0f9e5a;
+    --success-bg:  #e6f7ef;
+    --warning:     #c27b0a;
+    --warning-bg:  #fef3dc;
+
+    --radius:    12px;
+    --radius-sm: 8px;
+    --sidebar:   244px;
+    --header:    64px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ═══ SIDEBAR ═══ */
+  .sidebar {
+    width: var(--sidebar);
+    background: #E0FBFC;
+    border-right: 1px solid #c5f2f4;
+    display: flex; flex-direction: column;
+    flex-shrink: 0; z-index: 10;
+  }
+
+  .logo {
+    padding: 20px 20px 16px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #c5f2f4;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: #98C7D9;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: #1e4d5c; }
+  .logo-sub  { font-size: 11px; color: #2c6e82; }
+
+  nav { padding: 16px 10px; flex: 1; }
+
+  .nav-label {
+    font-size: 9.5px; font-weight: 600; letter-spacing: .1em;
+    color: #7ab3c9; text-transform: uppercase;
+    padding: 0 8px; margin: 16px 0 5px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: var(--radius-sm);
+    font-size: 13px; color: #1e4d5c;
+    cursor: pointer; transition: all .15s; margin-bottom: 2px;
+    text-decoration: none; border: none;
+    background: none; width: 100%; text-align: left;
+  }
+  .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .nav-item:hover { background: #c5f2f4; color: #1e4d5c; }
+  .nav-item.active { background: #98C7D9; color: #ffffff; font-weight: 500; }
+  .nav-item.active svg { opacity: 1; }
+
+  .nav-badge {
+    margin-left: auto; background: #c5f2f4; color: #1e4d5c;
+    font-size: 10px; font-weight: 600; border-radius: 20px;
+    padding: 1px 7px; min-width: 20px; text-align: center;
+  }
+  .nav-item.active .nav-badge { background: rgba(255,255,255,.3); color: #fff; }
+
+  .user-card {
+    margin: 12px; padding: 12px;
+    border: 1px solid #c5f2f4;
+    border-radius: var(--radius);
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,.5);
+  }
+  .avatar-sm {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #98C7D9; color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .user-name { font-size: 12.5px; font-weight: 500; line-height: 1.2; color: #1e4d5c; }
+  .user-role { font-size: 11px; color: #2c6e82; }
+
+  /* ═══ MAIN ═══ */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    height: var(--header);
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 28px; gap: 16px; flex-shrink: 0;
+  }
+  .page-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+  .search-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 12px; width: 210px;
+  }
+  .search-bar svg { width: 15px; height: 15px; color: var(--light); flex-shrink: 0; }
+  .search-bar input { border: none; background: none; font-family: inherit; font-size: 13px; color: var(--text); outline: none; width: 100%; }
+  .search-bar input::placeholder { color: var(--light); }
+
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .15s; position: relative;
+  }
+  .icon-btn:hover { background: var(--surface); }
+  .icon-btn svg { width: 18px; height: 18px; color: var(--muted); }
+  .notif-dot {
+    position: absolute; top: 6px; right: 6px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #98C7D9; border: 1.5px solid white;
+  }
+
+  .content { flex: 1; overflow-y: auto; padding: 28px; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ═══ HERO ═══ */
+  .profile-hero {
+    background: #E0FBFC;
+    border: 1px solid #c5f2f4;
+    border-radius: var(--radius); padding: 28px 32px; color: #1e4d5c;
+    display: flex; align-items: center; gap: 24px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .profile-hero::after {
+    content: ''; position: absolute; right: -40px; top: -40px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: rgba(152,199,217,.12);
+  }
+  .profile-hero::before {
+    content: ''; position: absolute; right: 70px; bottom: -30px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: rgba(152,199,217,.08);
+  }
+  /* red accent stripe */
+  .profile-hero .hero-stripe {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    background: #98C7D9; border-radius: var(--radius) 0 0 var(--radius);
+  }
+
+  .avatar-lg {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(152,199,217,.25); border: 2px solid #98C7D9;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700; flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+  }
+  .hero-name  { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+  .hero-role  { font-size: 14px; opacity: .82; margin: 2px 0 4px; }
+  .hero-school{ font-size: 13px; opacity: .65; }
+  .hero-stats {
+    margin-left: auto; display: flex; gap: 0;
+    background: rgba(152,199,217,.2); border-radius: 10px; overflow: hidden;
+  }
+  .hero-stat {
+    padding: 12px 20px; text-align: center;
+    border-right: 1px solid #c5f2f4;
+  }
+  .hero-stat:last-child { border-right: none; }
+  .hero-stat-n { font-size: 22px; font-weight: 700; }
+  .hero-stat-l { font-size: 11px; opacity: .7; }
+
+  /* ═══ CARDS & LAYOUT ═══ */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+  }
+  .card-title { font-weight: 600; font-size: 14.5px; margin-bottom: 12px; }
+
+  /* ═══ PILLS ═══ */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .pill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .p-active   { background: var(--success-bg); color: #065f46; }
+  .p-active .pill-dot { background: var(--success); }
+  .p-inactive { background: var(--surface); color: var(--muted); }
+  .p-inactive .pill-dot { background: #cbd5e1; }
+  .p-attente  { background: #E0FBFC; color: #2c6e82; }
+  .p-attente .pill-dot { background: #98C7D9; }
+  .p-refuse   { background: #c5f2f4; color: #1e4d5c; }
+  .p-refuse .pill-dot { background: #2c6e82; }
+  .p-valide   { background: var(--success-bg); color: #065f46; }
+  .p-valide .pill-dot { background: var(--success); }
+
+  /* ═══ BUTTONS ═══ */
+  .btn {
+    padding: 8px 16px; border-radius: 8px; font-family: inherit;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: #98C7D9; color: #ffffff; border-color: #7ab3c9; }
+  .btn-primary:hover { background: #7ab3c9; }
+  .btn-navy { background: #98C7D9; color: white; border-color: #7ab3c9; }
+  .btn-navy:hover { background: #7ab3c9; }
+  .btn-ghost { background: white; border-color: var(--border); color: var(--text); }
+  .btn-ghost:hover { background: #E0FBFC; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-icon { width: 32px; height: 32px; padding: 0; display:flex; align-items:center; justify-content:center; }
+  .btn-icon svg { width: 15px; height: 15px; }
+
+  /* ═══ TABLE ═══ */
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 0 12px 10px 0; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 13px 12px 13px 0; font-size: 13.5px;
+    border-bottom: 1px solid var(--border); vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #E0FBFC; }
+  .td-name { font-weight: 600; }
+  .td-sub  { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  /* ═══ TAGS ═══ */
+  .tag {
+    display: inline-block; padding: 4px 10px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 500;
+    background: #E0FBFC; color: #2c6e82;
+    border: 1px solid #c5f2f4;
+  }
+  .tag.navy { background: #E0FBFC; color: #1e4d5c; border-color: #a8becc; }
+  .tag.green { background: var(--success-bg); color: #065f46; border-color: #a3e3c0; }
+  .tag.teal { background: var(--teal-light); color: var(--teal); border-color: #9dc5d3; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* ═══ FILTER BAR ═══ */
+  .filter-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-tab {
+    padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--white); color: var(--muted);
+    cursor: pointer; transition: all .15s; font-family: inherit;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .filter-tab:hover { border-color: #98C7D9; color: #1e4d5c; }
+  .filter-tab.active { background: #98C7D9; color: #ffffff; border-color: #98C7D9; }
+  .filter-tab.active .fc { background: rgba(255,255,255,.25); color: white; }
+  .fc { background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 700; border-radius: 10px; padding: 0 6px; }
+
+  /* ═══ KPI GRID ═══ */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+  .kpi-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .kpi-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .kpi-val { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; line-height: 1; }
+  .kpi-lbl { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .kpi-delta { font-size: 11.5px; font-weight: 600; margin-top: 2px; }
+  .up   { color: var(--success); }
+  .down { color: #2c6e82; }
+
+  /* ═══ PROGRESS ═══ */
+  .prog-wrap { margin-bottom: 12px; }
+  .prog-header { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .prog-bar { height: 7px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 99px; background: #98C7D9; }
+  .prog-fill.navy { background: #98C7D9; }
+  .prog-fill.green { background: var(--success); }
+  .prog-fill.teal { background: var(--teal); }
+
+  /* ═══ PAGE HEADER ═══ */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .page-hdr-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .page-hdr-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* ═══ OFFER CARD ═══ */
+  .offer-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    transition: border-color .18s, box-shadow .18s;
+  }
+  .offer-card:hover { border-color: #98C7D9; box-shadow: 0 4px 16px rgba(152,199,217,.2); }
+  .offer-card-header {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .offer-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .offer-body { padding: 14px 18px; }
+  .offer-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .offer-actions {
+    padding: 12px 18px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px; background: var(--surface);
+  }
+
+  /* toggle switch */
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+  .toggle { position: relative; width: 36px; height: 20px; cursor: pointer; }
+  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track {
+    position: absolute; inset: 0; border-radius: 20px;
+    background: var(--border); transition: background .2s;
+  }
+  .toggle input:checked ~ .toggle-track { background: var(--success); }
+  .toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: white; transition: left .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.15);
+  }
+  .toggle input:checked ~ .toggle-thumb { left: 19px; }
+
+  /* ═══ MAIL CARD ═══ */
+  .mail-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    transition: border-color .15s;
+  }
+  .mail-card:hover { border-color: #98C7D9; }
+
+  /* ═══ CHATBOT ═══ */
+  .chat-panel {
+    position: fixed; bottom: 24px; right: 28px;
+    width: 340px; background: var(--white);
+    border-radius: 16px; box-shadow: 0 12px 40px rgba(26,46,74,.18);
+    border: 1px solid var(--border);
+    display: none; flex-direction: column; overflow: hidden; z-index: 999;
+  }
+  .chat-panel.open { display: flex; animation: slideUp .22s ease; }
+  .chat-float-btn {
+    position: fixed; bottom: 24px; right: 28px;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: #98C7D9; border: none; color: white;
+    cursor: pointer; font-size: 22px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(26,46,74,.3);
+    transition: background .15s;
+  }
+  .chat-float-btn:hover { background: #7ab3c9; }
+  .chat-float-btn.hidden { display: none; }
+  .chat-float-btn .badge {
+    position: absolute; top: -2px; right: -2px;
+    background: #98C7D9; color: white; font-size: 10px;
+    width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; border: 2px solid white;
+  }
+  .chat-header {
+    background: linear-gradient(135deg, #98C7D9 0%, #E0FBFC 100%);
+    color: white; padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .chat-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,.2); border: 1.5px solid rgba(255,255,255,.3);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .chat-name { font-weight: 600; font-size: 14px; }
+  .chat-status { font-size: 11px; opacity: .8; display: flex; align-items: center; gap: 4px; }
+  .online-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+  .chat-close {
+    margin-left: auto; background: rgba(255,255,255,.15); border: none;
+    width: 26px; height: 26px; border-radius: 50%; color: white;
+    cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  }
+  .chat-close:hover { background: rgba(255,255,255,.28); }
+  .chat-messages { height: 260px; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { display: flex; gap: 8px; }
+  .msg-bot { align-self: flex-start; }
+  .msg-user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #E0FBFC; border: 1px solid #a8becc;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; flex-shrink: 0; margin-top: 2px;
+  }
+  .msg-bubble { padding: 9px 13px; border-radius: 12px; font-size: 13px; line-height: 1.5; max-width: 220px; }
+  .msg-bot .msg-bubble { background: var(--surface); color: var(--text); border-bottom-left-radius: 4px; }
+  .msg-user .msg-bubble { background: #98C7D9; color: #ffffff; border-bottom-right-radius: 4px; }
+  .chat-suggestions { padding: 8px 14px; display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid var(--border); }
+  .suggestion {
+    font-size: 11.5px; padding: 5px 10px; border-radius: 20px;
+    background: #E0FBFC; color: #1e4d5c;
+    border: 1px solid #a8becc; cursor: pointer; transition: background .15s; font-family: inherit;
+  }
+  .suggestion:hover { background: #c8d8e4; }
+  .chat-input-bar { padding: 12px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
+  .chat-input {
+    flex: 1; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; font-family: inherit; font-size: 13px;
+    color: var(--text); outline: none; background: var(--surface);
+  }
+  .chat-input:focus { border-color: #98C7D9; }
+  .chat-input::placeholder { color: var(--light); }
+  .send-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: #98C7D9; border: none; color: white;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .send-btn:hover { background: #7ab3c9; }
+  .send-btn svg { width: 16px; height: 16px; }
+
+  /* ═══ MODAL ═══ */
+  #modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  #modal-overlay.open { display: flex; }
+  #modal-box {
+    background: var(--white); border-radius: 16px;
+    width: 580px; max-width: 93vw; max-height: 90vh;
+    overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    animation: slideUp .2s ease;
+  }
+
+  /* ═══ ANIMATIONS ═══ */
+  @keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+  @keyframes fadeIn  { from { opacity:0; transform:translateY(6px); }  to { opacity:1; transform:none; } }
+  .page.active > * { animation: fadeIn .22s ease; }
+
+  .typing-dots span { display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--muted);margin:0 1px;animation:dot 1.2s infinite; }
+  .typing-dots span:nth-child(2){animation-delay:.2s}
+  .typing-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes dot{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1);opacity:1}}
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* enrollment expand */
+  .enroll-section { display: none; border-top: 1px solid var(--border); background: #fafcff; }
+  .enroll-section.open { display: block; }
+  .enroll-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .enroll-row:last-child { border-bottom: none; }
+  .enroll-avatar {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🏢</div>
+    <div>
+      <div class="logo-name">StageBot Pro</div>
+      <div class="logo-sub">OCP Group · Espace Entreprise</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-label">Principal</div>
+
+    <button class="nav-item active" onclick="goPage('offres', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      </svg>
+      Offres de stage
+      <span class="nav-badge">6</span>
+    </button>
+
+    <button class="nav-item" onclick="goPage('courriel', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+      Courriel
+      <span class="nav-badge">23</span>
+    </button>
+
+    <button class="nav-item" onclick="goPage('stagiaires', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Stagiaires
+      <span class="nav-badge">18</span>
+    </button>
+
+    <div class="nav-label">Administration</div>
+
+    <button class="nav-item" onclick="goPage('statistiques', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      Statistiques
+    </button>
+
+    <button class="nav-item" onclick="goPage('partenaires', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Partenaires Écoles
+    </button>
+
+    <button class="nav-item" onclick="toggleChat()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Chatbot RH
+      <span class="nav-badge">IA</span>
+    </button>
+  </nav>
+
+  <div class="user-card">
+    <div class="avatar-sm">MO</div>
+    <div>
+      <div class="user-name">M. Nabil Elhaji</div>
+      <div class="user-role">Responsable RH · OCP Group</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <div class="topbar">
+    <span class="page-title" id="topbar-title">Offres de stage</span>
+    <div class="topbar-actions">
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Rechercher…">
+      </div>
+      <div class="icon-btn" onclick="toggleChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openCreateOffer()">+ Créer une offre</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ══════════════════════════════
+       PAGE: OFFRES DE STAGE
+  ══════════════════════════════ -->
+  <div id="page-offres" class="page active">
+
+    <div class="profile-hero">
+      <div class="hero-stripe"></div>
+      <div class="avatar-lg">OC</div>
+      <div>
+        <div class="hero-name">OCP Group — Offres de stage</div>
+        <div class="hero-role">Gérez vos offres, suivez les candidatures et activez/désactivez les recrutements</div>
+        <div class="hero-school">Session 2025–2026 · Casablanca, Maroc</div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-n">6</div><div class="hero-stat-l">Offres créées</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">4</div><div class="hero-stat-l">Actives</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">47</div><div class="hero-stat-l">Candidatures</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">18</div><div class="hero-stat-l">Placés</div></div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-tab active" onclick="filterOffers('all',this)">Toutes <span class="fc">6</span></button>
+      <button class="filter-tab" onclick="filterOffers('active',this)">Actives <span class="fc">4</span></button>
+      <button class="filter-tab" onclick="filterOffers('inactive',this)">Désactivées <span class="fc">2</span></button>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm">Exporter</button>
+        <button class="btn btn-primary btn-sm" onclick="openCreateOffer()">+ Créer une offre</button>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;" id="offers-list">
+
+      <!-- OFFER CARD 1 -->
+      <div class="offer-card" data-offer-status="active" data-offer-id="1">
+        <div class="offer-card-header">
+          <div class="offer-icon" style="background:#E0FBFC;">📊</div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px;">Stage Data Science — Analyse de données minières</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <span class="pill p-active" style="font-size:11px;"><span class="pill-dot"></span>Active</span>
+              <span style="font-size:12px;color:var(--muted);">Créée le 2 mai 2026</span>
+              <span style="font-size:12px;color:var(--muted);">Expire le 30 juin 2026</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" checked onchange="toggleOffer(1,this)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+              <span style="font-size:12px;color:var(--muted);" id="toggle-label-1">Activée</span>
+            </div>
+          </div>
+        </div>
+        <div class="offer-body">
+          <div class="offer-meta">
+            <span>📍 Casablanca</span>
+            <span>⏳ 6 mois</span>
+            <span>👥 Max : <strong>3</strong> stagiaires</span>
+            <span>📋 <strong>12</strong> candidatures</span>
+            <span>✅ <strong>3/3</strong> acceptés</span>
+            <span>💰 3 500 MAD/mois</span>
+          </div>
+          <div class="tags">
+            <span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">Scikit-learn</span><span class="tag">SQL</span><span class="tag navy">PFE</span>
+          </div>
+        </div>
+        <div class="offer-actions">
+          <button class="btn btn-ghost btn-sm" onclick="viewCandidatures(1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:4px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Voir candidatures (12)
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="editOffer(1)">✏️ Modifier</button>
+          <button class="btn btn-ghost btn-sm" style="color:#2c6e82;border-color:#98C7D9;" onclick="deleteOffer(1)">🗑 Supprimer</button>
+          <div style="margin-left:auto;font-size:12px;color:var(--success);font-weight:600;">🟢 3 places pourvues</div>
+        </div>
+        <div class="enroll-section" id="cands-1"></div>
+      </div>
+
+      <!-- OFFER CARD 2 -->
+      <div class="offer-card" data-offer-status="active" data-offer-id="2">
+        <div class="offer-card-header">
+          <div class="offer-icon" style="background:var(--accent-light);">🤖</div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px;">Stage IA — Vision par ordinateur & contrôle qualité</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <span class="pill p-active" style="font-size:11px;"><span class="pill-dot"></span>Active</span>
+              <span style="font-size:12px;color:var(--muted);">Créée le 5 mai 2026</span>
+              <span style="font-size:12px;color:var(--muted);">Expire le 15 juil. 2026</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" checked onchange="toggleOffer(2,this)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+              <span style="font-size:12px;color:var(--muted);" id="toggle-label-2">Activée</span>
+            </div>
+          </div>
+        </div>
+        <div class="offer-body">
+          <div class="offer-meta">
+            <span>📍 Khouribga</span>
+            <span>⏳ 5 mois</span>
+            <span>👥 Max : <strong>2</strong> stagiaires</span>
+            <span>📋 <strong>9</strong> candidatures</span>
+            <span>✅ <strong>1/2</strong> acceptés</span>
+            <span>💰 3 200 MAD/mois</span>
+          </div>
+          <div class="tags">
+            <span class="tag">PyTorch</span><span class="tag">OpenCV</span><span class="tag">Python</span><span class="tag navy">PFE</span>
+          </div>
+        </div>
+        <div class="offer-actions">
+          <button class="btn btn-ghost btn-sm" onclick="viewCandidatures(2)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:4px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Voir candidatures (9)
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="editOffer(2)">✏️ Modifier</button>
+          <button class="btn btn-ghost btn-sm" style="color:#2c6e82;border-color:#98C7D9;" onclick="deleteOffer(2)">🗑 Supprimer</button>
+          <div style="margin-left:auto;font-size:12px;color:var(--warning);font-weight:600;">🟡 1 place restante</div>
+        </div>
+        <div class="enroll-section" id="cands-2"></div>
+      </div>
+
+      <!-- OFFER CARD 3 -->
+      <div class="offer-card" data-offer-status="active" data-offer-id="3">
+        <div class="offer-card-header">
+          <div class="offer-icon" style="background:var(--success-bg);">⚙️</div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px;">Stage Génie des procédés — Optimisation production</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <span class="pill p-active" style="font-size:11px;"><span class="pill-dot"></span>Active</span>
+              <span style="font-size:12px;color:var(--muted);">Créée le 8 mai 2026</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" checked onchange="toggleOffer(3,this)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+              <span style="font-size:12px;color:var(--muted);" id="toggle-label-3">Activée</span>
+            </div>
+          </div>
+        </div>
+        <div class="offer-body">
+          <div class="offer-meta">
+            <span>📍 Jorf Lasfar</span>
+            <span>⏳ 6 mois</span>
+            <span>👥 Max : <strong>4</strong> stagiaires</span>
+            <span>📋 <strong>14</strong> candidatures</span>
+            <span>✅ <strong>2/4</strong> acceptés</span>
+            <span>💰 3 000 MAD/mois</span>
+          </div>
+          <div class="tags">
+            <span class="tag">MATLAB</span><span class="tag">Simulation</span><span class="tag">Procédés chimiques</span><span class="tag navy">PFE</span>
+          </div>
+        </div>
+        <div class="offer-actions">
+          <button class="btn btn-ghost btn-sm" onclick="viewCandidatures(3)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:4px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Voir candidatures (14)
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="editOffer(3)">✏️ Modifier</button>
+          <button class="btn btn-ghost btn-sm" style="color:#2c6e82;border-color:#98C7D9;" onclick="deleteOffer(3)">🗑 Supprimer</button>
+          <div style="margin-left:auto;font-size:12px;color:var(--warning);font-weight:600;">🟡 2 places restantes</div>
+        </div>
+        <div class="enroll-section" id="cands-3"></div>
+      </div>
+
+      <!-- OFFER CARD 4 — Inactive -->
+      <div class="offer-card" data-offer-status="inactive" data-offer-id="4" style="opacity:.7;">
+        <div class="offer-card-header">
+          <div class="offer-icon" style="background:var(--surface);">💻</div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px;">Stage Développement ERP — Module RH SAP</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <span class="pill p-inactive" style="font-size:11px;"><span class="pill-dot"></span>Désactivée</span>
+              <span style="font-size:12px;color:var(--muted);">Désactivée le 10 mai 2026</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="toggle-wrap">
+              <label class="toggle">
+                <input type="checkbox" onchange="toggleOffer(4,this)">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+              <span style="font-size:12px;color:var(--muted);" id="toggle-label-4">Désactivée</span>
+            </div>
+          </div>
+        </div>
+        <div class="offer-body">
+          <div class="offer-meta">
+            <span>📍 Casablanca</span><span>⏳ 4 mois</span>
+            <span>👥 Max : <strong>2</strong> stagiaires</span>
+            <span>📋 <strong>6</strong> candidatures</span>
+            <span>💰 2 800 MAD/mois</span>
+          </div>
+          <div class="tags"><span class="tag">SAP</span><span class="tag">ABAP</span><span class="tag navy">Stage été</span></div>
+        </div>
+        <div class="offer-actions">
+          <button class="btn btn-ghost btn-sm" onclick="viewCandidatures(4)">Voir candidatures (6)</button>
+          <button class="btn btn-ghost btn-sm" onclick="editOffer(4)">✏️ Modifier</button>
+          <button class="btn btn-ghost btn-sm" style="color:#2c6e82;border-color:#98C7D9;" onclick="deleteOffer(4)">🗑 Supprimer</button>
+        </div>
+        <div class="enroll-section" id="cands-4"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       PAGE: COURRIEL
+  ══════════════════════════════ -->
+  <div id="page-courriel" class="page">
+
+    <div class="profile-hero">
+      <div class="hero-stripe"></div>
+      <div class="avatar-lg">📬</div>
+      <div>
+        <div class="hero-name">Courriel — Demandes de stage</div>
+        <div class="hero-role">Candidatures reçues par offre · À accepter ou refuser avec commentaire</div>
+        <div class="hero-school">OCP Group · Session 2025–2026</div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-n">47</div><div class="hero-stat-l">Total reçues</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">23</div><div class="hero-stat-l">En attente</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">18</div><div class="hero-stat-l">Acceptées</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">6</div><div class="hero-stat-l">Refusées</div></div>
+      </div>
+    </div>
+
+    <!-- Offer group 1 -->
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:10px 14px;background:#98C7D9;border-radius:10px;color:white;">
+        <span style="font-size:16px;">📊</span>
+        <div>
+          <div style="font-size:13.5px;font-weight:600;">Stage Data Science — Analyse de données minières</div>
+          <div style="font-size:12px;opacity:.7;">12 candidatures · Max 3 places · 3/3 pourvues</div>
+        </div>
+        <span style="margin-left:auto;font-size:12px;font-weight:600;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;">3/3 places</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+
+        <div class="mail-card" data-req-id="r1" data-req-status="attente">
+          <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 18px;">
+            <div style="width:42px;height:42px;border-radius:10px;background:#E0FBFC;display:flex;align-items:center;justify-content:center;font-weight:700;color:#2c6e82;font-family:'Syne',sans-serif;flex-shrink:0;font-size:14px;">SW</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                <div style="font-size:14px;font-weight:600;">Sat Walid</div>
+                <span class="pill p-attente" style="font-size:11px;"><span class="pill-dot"></span>En attente</span>
+              </div>
+              <div style="font-size:12.5px;color:var(--muted);margin-bottom:4px;">ENSIAS · 3e année Génie Logiciel · <a href="#" style="color:#2c6e82;">CV disponible</a></div>
+              <div style="font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
+                <span>📅 Envoyée le 10 mai 2026</span><span>⏳ Durée souhaitée : 6 mois</span>
+              </div>
+              <div style="font-size:12.5px;background:var(--surface);border-radius:8px;padding:9px 13px;border-left:3px solid #98C7D9;line-height:1.55;">
+                <strong>Lettre de motivation :</strong> Passionné par l'analyse de données et les environnements industriels, je souhaite contribuer aux projets data d'OCP Group dans le cadre de mon PFE.
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-end;flex-shrink:0;">
+              <button class="btn btn-ghost btn-sm" onclick="openCV('SW','Sat Walid')">📄 Voir CV</button>
+              <button class="btn btn-primary btn-sm" onclick="acceptReq('r1')">✓ Accepter</button>
+              <button class="btn btn-ghost btn-sm" style="color:#2c6e82;border-color:#98C7D9;" onclick="toggleReqRefuse('r1')">✕ Refuser</button>
+            </div>
+          </div>
+          <div id="refuse-r1" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:#fffaf9;">
+            <div style="font-size:12.5px;font-weight:600;color:#2c6e82;margin-bottom:7px;">Motif de refus — sera envoyé à l'étudiant</div>
+            <textarea placeholder="Ex : Votre profil ne correspond pas aux compétences techniques requises pour ce poste…" style="width:100%;min-height:70px;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;resize:vertical;outline:none;line-height:1.5;background:var(--white);color:var(--text);"></textarea>
+            <div style="display:flex;gap:7px;justify-content:flex-end;margin-top:9px;">
+              <button class="btn btn-ghost btn-sm" onclick="toggleReqRefuse('r1')">Annuler</button>
+              <button class="btn btn-sm" style="background:#98C7D9;color:white;" onclick="sendRefuse('r1')">Envoyer le refus</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mail-card" data-req-id="r2" data-req-status="acceptee">
+          <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 18px;">
+            <div style="width:42px;height:42px;border-radius:10px;background:var(--success-bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--success);font-family:'Syne',sans-serif;flex-shrink:0;font-size:14px;">AB</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                <div style="font-size:14px;font-weight:600;">Amira Benali</div>
+                <span class="pill p-valide" style="font-size:11px;"><span class="pill-dot"></span>Acceptée</span>
+              </div>
+              <div style="font-size:12.5px;color:var(--muted);margin-bottom:4px;">ENSIAS · 3e année IA · <a href="#" style="color:#2c6e82;">CV disponible</a></div>
+              <div style="font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
+                <span>📅 Envoyée le 7 mai 2026</span><span>⏳ 6 mois</span>
+              </div>
+              <div style="font-size:12.5px;background:var(--surface);border-radius:8px;padding:9px 13px;border-left:3px solid var(--success);line-height:1.55;">
+                <strong>Lettre de motivation :</strong> Mes compétences en Python et ML me permettront d'apporter une réelle valeur ajoutée à vos équipes Data Science.
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-end;flex-shrink:0;">
+              <button class="btn btn-ghost btn-sm" onclick="openCV('AB','Amira Benali')">📄 Voir CV</button>
+              <span style="font-size:12px;color:var(--success);font-weight:600;">✓ Acceptée le 8 mai</span>
+              <button class="btn btn-ghost btn-sm">Convention →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Offer group 2 -->
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:10px 14px;background:#98C7D9;border-radius:10px;color:white;">
+        <span style="font-size:16px;">🤖</span>
+        <div>
+          <div style="font-size:13.5px;font-weight:600;">Stage IA — Vision par ordinateur & contrôle qualité</div>
+          <div style="font-size:12px;opacity:.7;">9 candidatures · Max 2 places · 1/2 pourvues</div>
+        </div>
+        <span style="margin-left:auto;font-size:12px;font-weight:600;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;">1/2 places</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+
+        <div class="mail-card" data-req-id="r3" data-req-status="attente">
+          <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 18px;">
+            <div style="width:42px;height:42px;border-radius:10px;background:#E0FBFC;display:flex;align-items:center;justify-content:center;font-weight:700;color:#2c6e82;font-family:'Syne',sans-serif;flex-shrink:0;font-size:14px;">KT</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                <div style="font-size:14px;font-weight:600;">Khadija Tahiri</div>
+                <span class="pill p-attente" style="font-size:11px;"><span class="pill-dot"></span>En attente</span>
+              </div>
+              <div style="font-size:12.5px;color:var(--muted);margin-bottom:4px;">ENSIAS · 3e année Data Science · <a href="#" style="color:#2c6e82;">CV disponible</a></div>
+              <div style="font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
+                <span>📅 Envoyée le 11 mai 2026</span><span>⏳ 5 mois</span>
+              </div>
+              <div style="font-size:12.5px;background:var(--surface);border-radius:8px;padding:9px 13px;border-left:3px solid #98C7D9;line-height:1.55;">
+                <strong>Lettre de motivation :</strong> Mon projet de fin d'études sur la détection d'anomalies par vision artificielle s'aligne parfaitement avec vos besoins de contrôle qualité.
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-end;flex-shrink:0;">
+              <button class="btn btn-ghost btn-sm" onclick="openCV('KT','Khadija Tahiri')">📄 Voir CV</button>
+              <button class="btn btn-primary btn-sm" onclick="acceptReq('r3')">✓ Accepter</button>
+              <button class="btn btn-ghost btn-sm" style="color:#2c6e82;border-color:#98C7D9;" onclick="toggleReqRefuse('r3')">✕ Refuser</button>
+            </div>
+          </div>
+          <div id="refuse-r3" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:#fffaf9;">
+            <div style="font-size:12.5px;font-weight:600;color:#2c6e82;margin-bottom:7px;">Motif de refus — sera envoyé à l'étudiant</div>
+            <textarea placeholder="Motif de refus…" style="width:100%;min-height:70px;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;resize:vertical;outline:none;line-height:1.5;background:var(--white);color:var(--text);"></textarea>
+            <div style="display:flex;gap:7px;justify-content:flex-end;margin-top:9px;">
+              <button class="btn btn-ghost btn-sm" onclick="toggleReqRefuse('r3')">Annuler</button>
+              <button class="btn btn-sm" style="background:#98C7D9;color:white;" onclick="sendRefuse('r3')">Envoyer le refus</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mail-card" data-req-id="r4" data-req-status="refuse">
+          <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 18px;">
+            <div style="width:42px;height:42px;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted);font-family:'Syne',sans-serif;flex-shrink:0;font-size:14px;">YR</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                <div style="font-size:14px;font-weight:600;">Youssef Rami</div>
+                <span class="pill p-refuse" style="font-size:11px;"><span class="pill-dot"></span>Refusée</span>
+              </div>
+              <div style="font-size:12.5px;color:var(--muted);margin-bottom:4px;">UM6P · 3e année Informatique</div>
+              <div style="font-size:12.5px;background:var(--surface);border-radius:8px;padding:9px 13px;border-left:3px solid var(--muted);line-height:1.55;color:var(--muted);">
+                <strong>Motif de refus envoyé :</strong> Le profil ne correspond pas aux compétences en vision par ordinateur (PyTorch/OpenCV) requises pour ce poste.
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-end;flex-shrink:0;">
+              <button class="btn btn-ghost btn-sm">📄 Voir CV</button>
+              <span style="font-size:11.5px;color:var(--accent);font-weight:600;">Refus envoyé le 9 mai</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════
+       PAGE: STAGIAIRES
+  ══════════════════════════════ -->
+  <div id="page-stagiaires" class="page">
+
+    <div class="page-header">
+      <div>
+        <div class="page-hdr-title">Stagiaires en cours</div>
+        <div class="page-hdr-sub">18 stagiaires actifs · Session 2025–2026</div>
+      </div>
+      <button class="btn btn-ghost btn-sm">Exporter CSV</button>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-tab active" onclick="filterInterns('all',this)">Tous <span class="fc">18</span></button>
+      <button class="filter-tab" onclick="filterInterns('en-cours',this)">En cours <span class="fc">12</span></button>
+      <button class="filter-tab" onclick="filterInterns('termine',this)">Terminé <span class="fc">6</span></button>
+      <div style="margin-left:auto;">
+        <div class="search-bar" style="width:180px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="text" placeholder="Rechercher…"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Stagiaire</th>
+            <th>École</th>
+            <th>Année</th>
+            <th>CV</th>
+            <th>Encadrant entreprise</th>
+            <th>Durée stage</th>
+            <th>Date soutenance</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-intern="en-cours">
+            <td><div class="td-name">Amira Benali</div><div class="td-sub">a.benali@ensias.ma</div></td>
+            <td style="font-size:13px;">ENSIAS</td>
+            <td style="font-size:13px;">3e</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="openCV('AB','Amira Benali')" style="font-size:11.5px;">📄 Voir CV</button></td>
+            <td style="font-size:13px;">M. Nabil Elhaji</td>
+            <td style="font-size:13px;">6 mois</td>
+            <td style="font-size:13px;color:var(--muted);">15 nov. 2026</td>
+            <td><span class="pill p-active"><span class="pill-dot"></span>En cours</span></td>
+            <td><button class="btn btn-ghost btn-sm">Fiche</button></td>
+          </tr>
+          <tr data-intern="en-cours">
+            <td><div class="td-name">Nadia Oufkir</div><div class="td-sub">n.oufkir@est.ma</div></td>
+            <td style="font-size:13px;">EST Casablanca</td>
+            <td style="font-size:13px;">3e</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="openCV('NO','Nadia Oufkir')" style="font-size:11.5px;">📄 Voir CV</button></td>
+            <td style="font-size:13px;">Mme. Sara Benali</td>
+            <td style="font-size:13px;">5 mois</td>
+            <td style="font-size:13px;color:var(--muted);">5 oct. 2026</td>
+            <td><span class="pill p-active"><span class="pill-dot"></span>En cours</span></td>
+            <td><button class="btn btn-ghost btn-sm">Fiche</button></td>
+          </tr>
+          <tr data-intern="en-cours">
+            <td><div class="td-name">Hassan Alaoui</div><div class="td-sub">h.alaoui@emines.ma</div></td>
+            <td style="font-size:13px;">EMINES</td>
+            <td style="font-size:13px;">3e</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="openCV('HA','Hassan Alaoui')" style="font-size:11.5px;">📄 Voir CV</button></td>
+            <td style="font-size:13px;">M. Karim Tahiri</td>
+            <td style="font-size:13px;">6 mois</td>
+            <td style="font-size:13px;color:var(--muted);">20 nov. 2026</td>
+            <td><span class="pill p-active"><span class="pill-dot"></span>En cours</span></td>
+            <td><button class="btn btn-ghost btn-sm">Fiche</button></td>
+          </tr>
+          <tr data-intern="en-cours">
+            <td><div class="td-name">Sara Ziani</div><div class="td-sub">s.ziani@inpt.ma</div></td>
+            <td style="font-size:13px;">INPT Rabat</td>
+            <td style="font-size:13px;">2e</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="openCV('SZ','Sara Ziani')" style="font-size:11.5px;">📄 Voir CV</button></td>
+            <td style="font-size:13px;">M. Nabil Elhaji</td>
+            <td style="font-size:13px;">4 mois</td>
+            <td style="font-size:13px;color:var(--muted);">30 sept. 2026</td>
+            <td><span class="pill p-active"><span class="pill-dot"></span>En cours</span></td>
+            <td><button class="btn btn-ghost btn-sm">Fiche</button></td>
+          </tr>
+          <tr data-intern="termine">
+            <td><div class="td-name">Mehdi Sqalli</div><div class="td-sub">m.sqalli@ensias.ma</div></td>
+            <td style="font-size:13px;">ENSIAS</td>
+            <td style="font-size:13px;">3e</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="openCV('MS','Mehdi Sqalli')" style="font-size:11.5px;">📄 Voir CV</button></td>
+            <td style="font-size:13px;">Mme. Sara Benali</td>
+            <td style="font-size:13px;">5 mois</td>
+            <td style="font-size:13px;color:var(--success);font-weight:500;">Soutenu le 2 mai 2026</td>
+            <td><span class="pill p-inactive"><span class="pill-dot"></span>Terminé</span></td>
+            <td><button class="btn btn-ghost btn-sm">Fiche</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       PAGE: STATISTIQUES
+  ══════════════════════════════ -->
+  <div id="page-statistiques" class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-hdr-title">Statistiques & Tableau de bord</div>
+        <div class="page-hdr-sub">OCP Group · Session 2025–2026</div>
+      </div>
+      <button class="btn btn-ghost btn-sm">Exporter rapport</button>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#E0FBFC;">📋</div>
+        <div><div class="kpi-val">6</div><div class="kpi-lbl">Offres actives</div><div class="kpi-delta up">↑ +2 ce mois</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:var(--warning-bg);">📨</div>
+        <div><div class="kpi-val">47</div><div class="kpi-lbl">Candidatures reçues</div><div class="kpi-delta up">↑ +9 cette semaine</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:var(--success-bg);">🎓</div>
+        <div><div class="kpi-val">18</div><div class="kpi-lbl">Placements confirmés</div><div class="kpi-delta up">↑ +3 ce mois</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:var(--accent-light);">📈</div>
+        <div><div class="kpi-val">38%</div><div class="kpi-lbl">Taux d'acceptation</div><div class="kpi-delta up">↑ +5% vs S.passée</div></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title">Candidatures par offre</div>
+        <div class="prog-wrap"><div class="prog-header"><span>Stage Data Science</span><span style="font-weight:600;color:#2c6e82">12</span></div><div class="prog-bar"><div class="prog-fill navy" style="width:85%"></div></div></div>
+        <div class="prog-wrap"><div class="prog-header"><span>Stage Génie des procédés</span><span style="font-weight:600;color:#2c6e82">14</span></div><div class="prog-bar"><div class="prog-fill navy" style="width:100%"></div></div></div>
+        <div class="prog-wrap"><div class="prog-header"><span>Stage IA Vision</span><span style="font-weight:600;color:var(--teal)">9</span></div><div class="prog-bar"><div class="prog-fill teal" style="width:64%"></div></div></div>
+        <div class="prog-wrap"><div class="prog-header"><span>Stage ERP SAP</span><span style="font-weight:600;color:var(--muted)">6</span></div><div class="prog-bar"><div class="prog-fill" style="width:43%;background:var(--muted)"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Répartition des candidatures</div>
+        <div style="display:flex;flex-direction:column;gap:13px;margin-top:4px;">
+          <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span>En attente traitement</span><strong style="color:#2c6e82">23</strong></div><div class="prog-bar"><div class="prog-fill navy" style="width:49%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span>Acceptées</span><strong style="color:var(--success)">18</strong></div><div class="prog-bar"><div class="prog-fill green" style="width:38%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span>Refusées</span><strong style="color:var(--accent)">6</strong></div><div class="prog-bar"><div class="prog-fill" style="width:13%"></div></div></div>
+        </div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:20px;font-size:12px;color:var(--muted);">
+          <span>Total : <strong style="color:var(--text)">47</strong></span>
+          <span>Taux d'acceptation : <strong style="color:var(--success)">38%</strong></span>
+          <span>Taux de refus : <strong style="color:var(--accent)">13%</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Stagiaires par école partenaire</div>
+      <table>
+        <thead><tr><th>École</th><th>Ville</th><th>Stagiaires placés</th><th>Candidatures envoyées</th><th>Taux acceptation</th></tr></thead>
+        <tbody>
+          <tr><td><div class="td-name">ENSIAS</div></td><td style="font-size:13px;">Rabat</td><td><strong>8</strong></td><td style="font-size:13px;">22</td><td><strong style="color:var(--success)">36%</strong></td></tr>
+          <tr><td><div class="td-name">EMINES</div></td><td style="font-size:13px;">Khouribga</td><td><strong>4</strong></td><td style="font-size:13px;">10</td><td><strong style="color:var(--success)">40%</strong></td></tr>
+          <tr><td><div class="td-name">EST Casablanca</div></td><td style="font-size:13px;">Casablanca</td><td><strong>3</strong></td><td style="font-size:13px;">9</td><td><strong style="color:#2c6e82">33%</strong></td></tr>
+          <tr><td><div class="td-name">INPT Rabat</div></td><td style="font-size:13px;">Rabat</td><td><strong>2</strong></td><td style="font-size:13px;">5</td><td><strong style="color:#2c6e82">40%</strong></td></tr>
+          <tr><td><div class="td-name">UM6P</div></td><td style="font-size:13px;">Ben Guerir</td><td><strong>1</strong></td><td style="font-size:13px;">3</td><td><strong style="color:var(--muted)">33%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       PAGE: PARTENAIRES ÉCOLES
+  ══════════════════════════════ -->
+  <div id="page-partenaires" class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-hdr-title">Partenaires Écoles & Conventions</div>
+        <div class="page-hdr-sub">8 écoles partenaires · Conventions actives et en cours de négociation</div>
+      </div>
+      <button class="btn btn-primary btn-sm">+ Ajouter école</button>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>École</th><th>Ville</th><th>Stagiaires / an</th><th>Encadrant référent</th><th>Date convention</th><th>Expiration</th><th>Statut</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#E0FBFC;display:flex;align-items:center;justify-content:center;font-weight:700;color:#2c6e82;font-family:'Syne',sans-serif;font-size:11px;flex-shrink:0;">ENS</div>
+                <div><div class="td-name">ENSIAS</div><div class="td-sub">École Nationale Supérieure d'Informatique</div></div>
+              </div>
+            </td>
+            <td style="font-size:13px;">Rabat</td><td><strong>8</strong></td>
+            <td style="font-size:13px;">Mme. El Alami</td>
+            <td style="font-size:13px;">Jan. 2024</td>
+            <td style="font-size:13px;color:var(--success);font-weight:500;">Jan. 2027</td>
+            <td><span class="tag green">Active</span></td>
+            <td><button class="btn btn-ghost btn-sm">Convention</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#E0FBFC;display:flex;align-items:center;justify-content:center;font-weight:700;color:#2c6e82;font-family:'Syne',sans-serif;font-size:11px;flex-shrink:0;">EMI</div>
+                <div><div class="td-name">EMINES</div><div class="td-sub">École des Mines de l'UM6P</div></div>
+              </div>
+            </td>
+            <td style="font-size:13px;">Khouribga</td><td><strong>4</strong></td>
+            <td style="font-size:13px;">Pr. Benjelloun</td>
+            <td style="font-size:13px;">Oct. 2023</td>
+            <td style="font-size:13px;color:var(--success);font-weight:500;">Oct. 2026</td>
+            <td><span class="tag green">Active</span></td>
+            <td><button class="btn btn-ghost btn-sm">Convention</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--teal);font-family:'Syne',sans-serif;font-size:11px;flex-shrink:0;">INP</div>
+                <div><div class="td-name">INPT Rabat</div><div class="td-sub">Institut National des Postes et Télécom.</div></div>
+              </div>
+            </td>
+            <td style="font-size:13px;">Rabat</td><td><strong>2</strong></td>
+            <td style="font-size:13px;">Pr. Ouali</td>
+            <td style="font-size:13px;">Fév. 2025</td>
+            <td style="font-size:13px;color:var(--success);font-weight:500;">Fév. 2028</td>
+            <td><span class="tag green">Active</span></td>
+            <td><button class="btn btn-ghost btn-sm">Convention</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:var(--success-bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--success);font-family:'Syne',sans-serif;font-size:11px;flex-shrink:0;">EST</div>
+                <div><div class="td-name">EST Casablanca</div><div class="td-sub">École Supérieure de Technologie</div></div>
+              </div>
+            </td>
+            <td style="font-size:13px;">Casablanca</td><td><strong>3</strong></td>
+            <td style="font-size:13px;">Pr. Hdaou</td>
+            <td style="font-size:13px;">Juin 2022</td>
+            <td style="font-size:13px;color:var(--warning);font-weight:500;">Juin 2026</td>
+            <td><span class="tag" style="background:var(--warning-bg);color:var(--warning);border-color:#f0cc80;">À renouveler</span></td>
+            <td><button class="btn btn-primary btn-sm" style="font-size:11.5px;">Renouveler</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;flex-shrink:0;">UM6</div>
+                <div><div class="td-name">UM6P Ben Guerir</div><div class="td-sub">Université Mohammed VI Polytechnique</div></div>
+              </div>
+            </td>
+            <td style="font-size:13px;">Ben Guerir</td><td><strong>1</strong></td>
+            <td style="font-size:13px;">—</td>
+            <td style="font-size:13px;color:var(--muted);">En cours</td>
+            <td style="font-size:13px;color:var(--muted);">—</td>
+            <td><span class="pill p-attente" style="font-size:11px;"><span class="pill-dot"></span>Négociation</span></td>
+            <td><button class="btn btn-ghost btn-sm">Suivi</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ═══ CREATE/EDIT OFFER MODAL ═══ -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal-box" style="padding:0;">
+    <div style="padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;" id="modal-title-text">Créer une nouvelle offre</div>
+      <button onclick="closeModal()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;color:var(--muted);display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="height:1px;background:var(--border);margin:18px 24px 0;"></div>
+    <div style="padding:20px 24px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div style="grid-column:1/-1;">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Titre de l'offre *</label>
+          <input type="text" placeholder="Ex : Stage Data Science — Analyse de données minières" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13.5px;color:var(--text);outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Domaine / filière</label>
+          <select style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);">
+            <option>Data Science & IA</option><option>Génie Logiciel</option><option>Génie des procédés</option><option>Finance & ERP</option><option>Réseaux & Sécurité</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Lieu</label>
+          <input type="text" placeholder="Casablanca, Jorf Lasfar…" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Durée du stage *</label>
+          <select style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);">
+            <option>3 mois</option><option>4 mois</option><option selected>5 mois</option><option>6 mois</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Nombre max de stagiaires *</label>
+          <input type="number" min="1" max="20" value="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Indemnité mensuelle (MAD)</label>
+          <input type="number" placeholder="3000" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Date de début souhaitée</label>
+          <input type="date" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Date d'expiration de l'offre</label>
+          <input type="date" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Type de stage</label>
+          <select style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);">
+            <option>PFE (Projet Fin d'Études)</option><option>Stage d'été</option><option>Stage d'initiation</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Encadrant entreprise</label>
+          <input type="text" placeholder="M. / Mme. …" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="grid-column:1/-1;">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Compétences requises (séparées par virgules)</label>
+          <input type="text" placeholder="Python, SQL, Power BI, Git…" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="grid-column:1/-1;">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;">Description du poste *</label>
+          <textarea placeholder="Décrivez les missions, l'environnement de travail, les objectifs attendus…" style="width:100%;min-height:90px;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;background:var(--surface);resize:vertical;line-height:1.5;" onfocus="this.style.borderColor='var(--navy)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-navy" onclick="saveOffer()">💾 Sauvegarder (brouillon)</button>
+        <button class="btn btn-primary" onclick="publishOffer()">🚀 Publier l'offre</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CHATBOT ═══ -->
+<button class="chat-float-btn" id="chat-btn" onclick="toggleChat()">
+  💬
+  <div class="badge">2</div>
+</button>
+
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div>
+      <div class="chat-name">StageBot RH</div>
+      <div class="chat-status"><div class="online-dot"></div> IA disponible</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="msg msg-bot">
+      <div class="msg-avatar">🤖</div>
+      <div><div class="msg-bubble">Bonjour ! Je suis votre assistant RH. Je peux vous aider à suivre vos candidatures, analyser les profils et gérer vos offres.</div></div>
+    </div>
+    <div class="msg msg-bot">
+      <div class="msg-avatar">🤖</div>
+      <div><div class="msg-bubble">Vous avez <strong>23 candidatures en attente</strong> de traitement. Voulez-vous les analyser ?</div></div>
+    </div>
+  </div>
+  <div class="chat-suggestions">
+    <button class="suggestion" onclick="sendMsg('candidatures en attente')">Candidatures en attente</button>
+    <button class="suggestion" onclick="sendMsg('meilleurs profils')">Meilleurs profils</button>
+    <button class="suggestion" onclick="sendMsg('rapport mensuel')">Rapport mensuel</button>
+  </div>
+  <div class="chat-input-bar">
+    <input class="chat-input" id="chat-input" placeholder="Posez votre question…" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="send-btn" onclick="sendMsg()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  /* ─── Page routing ─── */
+  const titles = {
+    offres:       'Offres de stage',
+    courriel:     'Courriel — Demandes reçues',
+    stagiaires:   'Stagiaires en cours',
+    statistiques: 'Statistiques & Tableau de bord',
+    partenaires:  'Partenaires Écoles'
+  };
+  function goPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id)?.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.getElementById('topbar-title').textContent = titles[id] || id;
+  }
+
+  /* ─── Offers filter ─── */
+  function filterOffers(status, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('[data-offer-status]').forEach(c => {
+      c.style.display = (status === 'all' || c.dataset.offerStatus === status) ? '' : 'none';
+    });
+  }
+
+  /* ─── Toggle offer active/inactive ─── */
+  function toggleOffer(id, cb) {
+    const card = document.querySelector(`[data-offer-id="${id}"]`);
+    const label = document.getElementById('toggle-label-' + id);
+    if (cb.checked) {
+      card.dataset.offerStatus = 'active';
+      card.style.opacity = '1';
+      label.textContent = 'Activée';
+      const pill = card.querySelector('.pill');
+      if (pill) { pill.className = 'pill p-active'; pill.innerHTML = '<span class="pill-dot"></span>Active'; }
+    } else {
+      card.dataset.offerStatus = 'inactive';
+      card.style.opacity = '0.65';
+      label.textContent = 'Désactivée';
+      const pill = card.querySelector('.pill');
+      if (pill) { pill.className = 'pill p-inactive'; pill.innerHTML = '<span class="pill-dot"></span>Désactivée'; }
+    }
+  }
+
+  /* ─── View candidatures (expand inside card) ─── */
+  const candidatureData = {
+    1: [
+      { initials:'SW', bg:'var(--navy-light)', color:'#98C7D9', name:'Sat Walid', school:'ENSIAS', status:'Accepté', statusClass:'p-valide' },
+      { initials:'AB', bg:'var(--success-bg)', color:'var(--success)', name:'Amira Benali', school:'ENSIAS', status:'Accepté', statusClass:'p-valide' },
+      { initials:'NO', bg:'var(--teal-light)', color:'var(--teal)', name:'Nadia Oufkir', school:'EST Casa', status:'Accepté', statusClass:'p-valide' },
+      { initials:'KT', bg:'var(--accent-light)', color:'var(--accent)', name:'Khadija Tahiri', school:'ENSIAS', status:'En attente', statusClass:'p-attente' },
+      { initials:'MS', bg:'var(--surface)', color:'var(--muted)', name:'Mehdi Sqalli', school:'ENSIAS', status:'Refusé', statusClass:'p-refuse' },
+    ],
+    2: [
+      { initials:'HA', bg:'var(--navy-light)', color:'#98C7D9', name:'Hassan Alaoui', school:'EMINES', status:'Accepté', statusClass:'p-valide' },
+      { initials:'KT', bg:'var(--accent-light)', color:'var(--accent)', name:'Khadija Tahiri', school:'ENSIAS', status:'En attente', statusClass:'p-attente' },
+      { initials:'YR', bg:'var(--surface)', color:'var(--muted)', name:'Youssef Rami', school:'UM6P', status:'Refusé', statusClass:'p-refuse' },
+    ],
+    3: [
+      { initials:'SZ', bg:'var(--teal-light)', color:'var(--teal)', name:'Sara Ziani', school:'INPT', status:'Accepté', statusClass:'p-valide' },
+      { initials:'OH', bg:'var(--navy-light)', color:'#98C7D9', name:'Omar Hilali', school:'ENSIAS', status:'En attente', statusClass:'p-attente' },
+    ],
+    4: [
+      { initials:'IR', bg:'var(--surface)', color:'var(--muted)', name:'Ines Raji', school:'EST Casa', status:'En attente', statusClass:'p-attente' },
+    ]
+  };
+
+  function viewCandidatures(id) {
+    const section = document.getElementById('cands-' + id);
+    if (section.classList.contains('open')) {
+      section.classList.remove('open');
+      return;
+    }
+    const data = candidatureData[id] || [];
+    section.innerHTML = data.map(c => `
+      <div class="enroll-row">
+        <div class="enroll-avatar" style="background:${c.bg};color:${c.color};">${c.initials}</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${c.name}</div><div style="font-size:12px;color:var(--muted);">${c.school}</div></div>
+        <span class="pill ${c.statusClass}" style="font-size:11px;"><span class="pill-dot"></span>${c.status}</span>
+        <button class="btn btn-ghost btn-sm" style="margin-left:8px;font-size:11.5px;">Voir profil</button>
+      </div>`).join('');
+    section.classList.add('open');
+  }
+
+  /* ─── Edit / Delete offer ─── */
+  function editOffer(id) { openCreateOffer('edit'); }
+  function deleteOffer(id) {
+    if (confirm('Supprimer cette offre ? Cette action est irréversible.')) {
+      const card = document.querySelector(`[data-offer-id="${id}"]`);
+      if (card) { card.style.transition = 'all .3s'; card.style.opacity = '0'; card.style.height = card.offsetHeight + 'px'; setTimeout(() => { card.style.height = '0'; card.style.margin = '0'; card.style.padding = '0'; card.style.overflow = 'hidden'; }, 10); setTimeout(() => card.remove(), 320); }
+    }
+  }
+
+  /* ─── Create/Edit modal ─── */
+  function openCreateOffer(mode) {
+    document.getElementById('modal-title-text').textContent = mode === 'edit' ? 'Modifier l\'offre' : 'Créer une nouvelle offre';
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modal-overlay') || !e.target) {
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+  }
+  function saveOffer() { closeModal(); alert('Offre sauvegardée en brouillon.'); }
+  function publishOffer() { closeModal(); alert('Offre publiée avec succès ! Les étudiants peuvent maintenant y postuler.'); }
+
+  /* ─── Courriel: refusal panel ─── */
+  function toggleReqRefuse(id) {
+    const panel = document.getElementById('refuse-' + id);
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (panel.style.display === 'block') panel.querySelector('textarea').focus();
+  }
+  function acceptReq(id) {
+    const card = document.querySelector(`[data-req-id="${id}"]`);
+    if (!card) return;
+    const pill = card.querySelector('.pill');
+    if (pill) { pill.className = 'pill p-valide'; pill.innerHTML = '<span class="pill-dot"></span>Acceptée'; }
+    const btnArea = card.querySelector('div[style*="flex-direction:column"]');
+    if (btnArea) {
+      btnArea.innerHTML = `<button class="btn btn-ghost btn-sm">📄 Voir CV</button><span style="font-size:12px;color:var(--success);font-weight:600;">✓ Accepté maintenant</span><button class="btn btn-ghost btn-sm">Convention →</button>`;
+    }
+    const rp = document.getElementById('refuse-' + id);
+    if (rp) rp.remove();
+  }
+  function sendRefuse(id) {
+    const panel = document.getElementById('refuse-' + id);
+    const comment = panel?.querySelector('textarea')?.value.trim();
+    if (!comment) { alert('Veuillez indiquer un motif de refus.'); return; }
+    const card = document.querySelector(`[data-req-id="${id}"]`);
+    if (!card) return;
+    const pill = card.querySelector('.pill');
+    if (pill) { pill.className = 'pill p-refuse'; pill.innerHTML = '<span class="pill-dot"></span>Refusée'; }
+    if (panel) {
+      panel.innerHTML = `<div style="display:flex;gap:10px;padding:4px 0;align-items:flex-start;"><div style="font-size:18px;">📩</div><div><div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:3px;">Motif de refus envoyé à l'étudiant</div><div style="font-size:12.5px;line-height:1.5;background:var(--surface);padding:9px 12px;border-radius:8px;border-left:3px solid var(--muted);">${comment}</div></div></div>`;
+      panel.style.background = '#f8f8f8'; panel.style.display = 'block';
+    }
+    const btnArea = card.querySelector('div[style*="flex-direction:column"]');
+    if (btnArea) {
+      const accept = btnArea.querySelector('.btn-primary');
+      const refuse = btnArea.querySelector('[onclick*="toggleReqRefuse"]');
+      if (accept) accept.remove();
+      if (refuse) refuse.remove();
+    }
+  }
+
+  /* ─── CV modal (placeholder) ─── */
+  function openCV(initials, name) {
+    alert(`CV de ${name} — Dans la version complète, le CV s'ouvrirait ici en aperçu PDF.`);
+  }
+
+  /* ─── Interns filter ─── */
+  function filterInterns(status, btn) {
+    document.querySelectorAll('#page-stagiaires .filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('tr[data-intern]').forEach(r => {
+      r.style.display = (status === 'all' || r.dataset.intern === status) ? '' : 'none';
+    });
+  }
+
+  /* ─── Chatbot ─── */
+  let chatOpen = false;
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    const panel = document.getElementById('chat-panel');
+    const btn = document.getElementById('chat-btn');
+    chatOpen ? panel.classList.add('open') : panel.classList.remove('open');
+    if (chatOpen) { btn.classList.add('hidden'); document.getElementById('chat-input').focus(); }
+    else { btn.classList.remove('hidden'); }
+  }
+
+  const botReplies = {
+    'candidatures en attente': '📋 Vous avez **23 candidatures en attente**. Les 5 meilleures par score CV sont : Sat Walid (87%), Amira Benali (92%), Khadija Tahiri (89%), Nadia Oufkir (95%), Hassan Alaoui (81%). Voulez-vous que je génère un tableau comparatif ?',
+    'meilleurs profils': '🏆 Les **3 meilleurs profils** pour vos offres actuelles : **Nadia Oufkir** (95% match — Data Science), **Amira Benali** (92% — IA), **Khadija Tahiri** (89% — Vision). Je peux préparer un email d\'invitation ?',
+    'rapport mensuel': '📊 Rapport mai 2026 : **47 candidatures** reçues (+22%), **18 placements** confirmés, taux d\'acceptation **38%**. 4 offres actives, 2 places restantes sur l\'offre IA Vision. Rapport complet disponible en PDF.',
+    'default': '🤔 Je recherche cette information pour vous… Pourriez-vous préciser votre demande ? Je peux vous aider avec le suivi des candidatures, l\'analyse des profils ou la gestion des offres.'
+  };
+
+  function sendMsg(text) {
+    const input = document.getElementById('chat-input');
+    const msg = (text || input.value).trim();
+    if (!msg) return;
+    input.value = '';
+    appendMsg(msg, 'user');
+    setTimeout(() => {
+      const typing = appendTyping();
+      setTimeout(() => {
+        typing.remove();
+        const key = msg.toLowerCase();
+        const reply = botReplies[key] || botReplies['default'];
+        appendMsg(reply, 'bot');
+      }, 950);
+    }, 300);
+  }
+
+  function appendMsg(text, type) {
+    const msgs = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = 'msg msg-' + type;
+    if (type === 'bot') {
+      div.innerHTML = `<div class="msg-avatar">🤖</div><div><div class="msg-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
+    } else {
+      div.innerHTML = `<div><div class="msg-bubble">${text}</div></div>`;
+    }
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  function appendTyping() {
+    const msgs = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = 'msg msg-bot';
+    div.innerHTML = `<div class="msg-avatar">🤖</div><div><div class="msg-bubble typing-dots"><span></span><span></span><span></span></div></div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+</script>
+</body>
+</html>

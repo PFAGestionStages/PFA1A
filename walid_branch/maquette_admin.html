@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StageBot — Administration</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:        #305A80;
+    --blue-dark:   #1B3248;
+    --blue-light:  #e8f2f6;
+    --surface:     #f4f8fa;
+    --white:       #ffffff;
+    --border:      #d8e8ef;
+    --text:        #1B3248;
+    --muted:       #5a7a8a;
+    --light:       #98C7D5;
+    --success:     #0f9e5a;
+    --success-bg:  #e6f7ef;
+    --warning:     #c27b0a;
+    --warning-bg:  #fef3dc;
+    --danger:      #c0392b;
+    --danger-bg:   #fdecea;
+
+    /* Admin accent: deep violet/indigo */
+    --accent:       #4A2D8F;
+    --accent-mid:   #5E3AAD;
+    --accent-light: #f0ecfb;
+    --accent-glow:  rgba(74,45,143,.12);
+
+    --radius:    12px;
+    --radius-sm: 8px;
+    --sidebar:   250px;
+    --header:    64px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ═══════════════════════════════════
+     SIDEBAR
+  ═══════════════════════════════════ */
+  .sidebar {
+    width: var(--sidebar);
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    flex-shrink: 0; z-index: 10;
+  }
+
+  .logo {
+    padding: 20px 20px 16px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-name { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); }
+  .logo-sub  { font-size: 11px; color: var(--muted); }
+
+  nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+
+  .nav-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    color: var(--light); text-transform: uppercase;
+    padding: 0 8px; margin: 16px 0 6px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: var(--radius-sm);
+    font-size: 13.5px; color: var(--muted);
+    cursor: pointer; transition: all .15s; margin-bottom: 2px;
+    text-decoration: none; border: none;
+    background: none; width: 100%; text-align: left;
+  }
+
+  .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .nav-item:hover { background: var(--accent-light); color: var(--accent); }
+  .nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+
+  .nav-badge {
+    margin-left: auto; background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 600; border-radius: 20px;
+    padding: 1px 7px; min-width: 20px; text-align: center;
+  }
+
+  .nav-badge.warn { background: var(--warning); }
+  .nav-badge.ok   { background: var(--success); }
+
+  .user-card {
+    margin: 12px; padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .avatar-sm {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .user-name { font-size: 13px; font-weight: 500; line-height: 1.2; }
+  .user-role { font-size: 11px; color: var(--muted); }
+
+  /* ═══════════════════════════════════
+     MAIN
+  ═══════════════════════════════════ */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    height: var(--header);
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 28px; gap: 16px; flex-shrink: 0;
+  }
+
+  .page-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .page-sub   { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+  .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+  .search-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 12px; width: 240px;
+  }
+  .search-bar svg { width: 15px; height: 15px; color: var(--light); flex-shrink: 0; }
+  .search-bar input { border: none; background: none; font-family: inherit; font-size: 13px; color: var(--text); outline: none; width: 100%; }
+  .search-bar input::placeholder { color: var(--light); }
+
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .15s; position: relative;
+  }
+  .icon-btn:hover { background: var(--surface); }
+  .icon-btn svg { width: 18px; height: 18px; color: var(--muted); }
+  .notif-dot {
+    position: absolute; top: 6px; right: 6px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); border: 1.5px solid white;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px; border-radius: 8px;
+    background: var(--accent); color: white;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    border: none; cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-mid); }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 14px; border-radius: 8px;
+    background: transparent; color: var(--muted);
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border); cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-ghost:hover { background: var(--surface); color: var(--text); }
+  .btn-ghost svg { width: 15px; height: 15px; }
+
+  .content { flex: 1; overflow-y: auto; padding: 28px; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    position: relative; overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+  .kpi-card.green::before  { background: var(--success); }
+  .kpi-card.orange::before { background: #E58D1E; }
+  .kpi-card.red::before    { background: var(--danger); }
+
+  .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+  .kpi-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    background: var(--accent-light);
+  }
+  .kpi-icon.green  { background: var(--success-bg); }
+  .kpi-icon.orange { background: var(--warning-bg); }
+  .kpi-icon.red    { background: var(--danger-bg); }
+
+  .kpi-trend {
+    font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; gap: 3px;
+    padding: 2px 7px; border-radius: 20px;
+  }
+  .kpi-trend.up   { background: var(--success-bg); color: var(--success); }
+  .kpi-trend.down { background: var(--danger-bg);  color: var(--danger); }
+  .kpi-trend.flat { background: var(--surface); color: var(--muted); }
+
+  .kpi-n { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 700; line-height: 1; }
+  .kpi-l { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .section-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── GRID 2 COLS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; font-size: 11px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+    padding: 0 12px 10px; border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface); }
+  tbody td { padding: 11px 12px; font-size: 13.5px; vertical-align: middle; }
+
+  .avatar-xs {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: white; flex-shrink: 0;
+  }
+
+  .cell-user { display: flex; align-items: center; gap: 10px; }
+  .cell-name  { font-weight: 500; font-size: 13.5px; }
+  .cell-email { font-size: 12px; color: var(--muted); }
+
+  /* ── PILLS ── */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 500;
+  }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .p-active  { background: var(--success-bg); color: var(--success); }
+  .p-active .pill-dot { background: var(--success); }
+  .p-inactive{ background: var(--surface); color: var(--muted); }
+  .p-inactive .pill-dot { background: var(--muted); }
+  .p-pending { background: var(--warning-bg); color: var(--warning); }
+  .p-pending .pill-dot { background: var(--warning); }
+  .p-admin   { background: var(--accent-light); color: var(--accent); }
+  .p-admin .pill-dot { background: var(--accent); }
+  .p-ecole   { background: #fdecea; color: #9B1D20; }
+  .p-ecole .pill-dot { background: #9B1D20; }
+  .p-entreprise { background: #e8f2f6; color: #305A80; }
+  .p-entreprise .pill-dot { background: #305A80; }
+  .p-etudiant { background: #eaf4ee; color: #1a7a42; }
+  .p-etudiant .pill-dot { background: #1a7a42; }
+
+  /* ── ACTION BUTTONS ── */
+  .action-btns { display: flex; gap: 6px; }
+  .action-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); background: var(--white);
+    cursor: pointer; transition: all .15s; color: var(--muted);
+  }
+  .action-btn:hover           { background: var(--surface); color: var(--text); }
+  .action-btn.danger:hover    { background: var(--danger-bg); color: var(--danger); border-color: #f5c6c0; }
+  .action-btn.success:hover   { background: var(--success-bg); color: var(--success); border-color: #b0dfca; }
+  .action-btn svg             { width: 14px; height: 14px; }
+
+  /* ── FILTER TABS ── */
+  .filter-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .filter-tab {
+    padding: 6px 14px; border-radius: 7px; font-size: 12.5px;
+    font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: all .15s; border: none; background: none;
+    font-family: inherit;
+  }
+  .filter-tab:hover  { background: var(--surface); color: var(--text); }
+  .filter-tab.active { background: var(--accent-light); color: var(--accent); }
+
+  /* ── PROFILE HERO (DASHBOARD) ── */
+  .admin-hero {
+    background: linear-gradient(135deg, var(--accent) 0%, #1e0a4a 100%);
+    border-radius: var(--radius); padding: 28px 32px; color: white;
+    display: flex; align-items: center; gap: 24px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .admin-hero::after {
+    content: ''; position: absolute; right: -40px; top: -40px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: rgba(255,255,255,.05);
+  }
+  .admin-hero::before {
+    content: ''; position: absolute; right: 80px; bottom: -50px;
+    width: 140px; height: 140px; border-radius: 50%;
+    background: rgba(255,255,255,.04);
+  }
+
+  .avatar-lg {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(255,255,255,.2); border: 2px solid rgba(255,255,255,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .hero-name  { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+  .hero-role  { font-size: 14px; opacity: .85; margin: 2px 0 4px; }
+  .hero-sub   { font-size: 12px; opacity: .65; }
+
+  .hero-stats {
+    margin-left: auto; display: flex; gap: 2px;
+    background: rgba(0,0,0,.2); border-radius: 10px; overflow: hidden;
+  }
+  .hero-stat {
+    padding: 12px 22px; text-align: center;
+    border-right: 1px solid rgba(255,255,255,.1);
+  }
+  .hero-stat:last-child { border-right: none; }
+  .hero-stat-n { font-size: 22px; font-weight: 700; }
+  .hero-stat-l { font-size: 11px; opacity: .7; }
+
+  /* ── ACTIVITY FEED ── */
+  .activity-list { display: flex; flex-direction: column; gap: 0; }
+  .activity-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .act-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0; margin-top: 1px;
+  }
+  .act-text  { font-size: 13px; line-height: 1.5; }
+  .act-text strong { font-weight: 600; }
+  .act-time  { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  /* ── REFERENTIAL CARDS ── */
+  .ref-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-bottom: 24px;
+  }
+  .ref-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all .15s;
+  }
+  .ref-card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .ref-icon {
+    width: 44px; height: 44px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .ref-n { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; }
+  .ref-l { font-size: 12px; color: var(--muted); }
+  .ref-arrow { margin-left: auto; color: var(--light); }
+  .ref-arrow svg { width: 16px; height: 16px; }
+
+  /* ── AUDIT LOG ── */
+  .audit-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .audit-item:last-child { border-bottom: none; }
+  .audit-type {
+    padding: 2px 8px; border-radius: 5px;
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; flex-shrink: 0;
+  }
+  .audit-type.create { background: var(--success-bg); color: var(--success); }
+  .audit-type.update { background: var(--warning-bg); color: var(--warning); }
+  .audit-type.delete { background: var(--danger-bg); color: var(--danger); }
+  .audit-type.login  { background: var(--accent-light); color: var(--accent); }
+  .audit-user { font-weight: 500; }
+  .audit-desc { color: var(--muted); flex: 1; font-size: 12.5px; }
+  .audit-time { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+
+  /* ── PARAMS FORM ── */
+  .param-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px; overflow: hidden;
+  }
+  .param-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .param-head-icon { font-size: 18px; }
+  .param-head-title { font-weight: 600; font-size: 14px; }
+  .param-head-sub   { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .param-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .param-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .form-input {
+    padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-family: inherit; font-size: 13.5px;
+    color: var(--text); background: var(--surface); outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus { border-color: var(--accent); background: var(--white); }
+  .form-select {
+    padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-family: inherit; font-size: 13.5px;
+    color: var(--text); background: var(--surface); outline: none;
+    cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2398C7D5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    padding-right: 36px;
+  }
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-top: 1px solid var(--border);
+  }
+  .toggle-row:first-child { border-top: none; padding-top: 0; }
+  .toggle-info { display: flex; flex-direction: column; gap: 2px; }
+  .toggle-label { font-size: 13.5px; font-weight: 500; }
+  .toggle-desc  { font-size: 12px; color: var(--muted); }
+  .toggle {
+    width: 42px; height: 24px; border-radius: 12px;
+    background: var(--border); cursor: pointer; position: relative;
+    transition: background .2s; flex-shrink: 0; border: none;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: white; top: 3px; left: 3px;
+    transition: left .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .toggle.on::after { left: 21px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--white); border-radius: 16px;
+    width: 100%; max-width: 520px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .modal-body  { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+  .modal-foot  {
+    padding: 16px 24px; border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  .close-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    border: 1px solid var(--border); background: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--muted);
+  }
+  .close-btn:hover { background: var(--surface); }
+  .close-btn svg { width: 16px; height: 16px; }
+
+  /* ── CHART BAR (CSS only) ── */
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+  .bar-label { width: 90px; color: var(--muted); flex-shrink: 0; font-size: 12px; text-align: right; }
+  .bar-track { flex: 1; height: 8px; background: var(--surface); border-radius: 20px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 20px; background: var(--accent); transition: width .6s ease; }
+  .bar-val   { width: 36px; text-align: right; font-weight: 600; color: var(--text); font-size: 12px; }
+
+  /* ── DONUT (CSS) ── */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut { width: 90px; height: 90px; position: relative; flex-shrink: 0; }
+  .donut svg { transform: rotate(-90deg); }
+  .donut-legend { display: flex; flex-direction: column; gap: 7px; flex: 1; }
+  .donut-leg-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+  .donut-leg-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .donut-leg-pct  { margin-left: auto; font-weight: 600; font-size: 12px; }
+
+  /* ── EXPORT PANEL ── */
+  .export-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .export-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    cursor: pointer; transition: all .15s;
+  }
+  .export-card:hover { border-color: var(--accent); background: var(--white); }
+  .export-icon { font-size: 22px; }
+  .export-name { font-size: 13px; font-weight: 600; }
+  .export-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 48px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 4px; }
+  .empty-state .title { font-weight: 600; font-size: 15px; }
+  .empty-state .sub   { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <div>
+      <div class="logo-name">StageBot</div>
+      <div class="logo-sub">Administration</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-label">Vue d'ensemble</div>
+    <button class="nav-item active" onclick="showPage('dashboard', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Statistiques
+    </button>
+
+    <div class="nav-label">Modération</div>
+    <button class="nav-item" onclick="showPage('courrier', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Courrier offres
+      <span class="nav-badge warn" id="courrier-badge">7</span>
+    </button>
+
+    <div class="nav-label">Utilisateurs</div>
+    <button class="nav-item" onclick="showPage('users', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Tous les utilisateurs
+      <span class="nav-badge">312</span>
+    </button>
+    <button class="nav-item" onclick="showPage('ecoles', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      Écoles
+      <span class="nav-badge" style="background:#9B1D20;">14</span>
+    </button>
+    <button class="nav-item" onclick="showPage('entreprises', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      Entreprises
+      <span class="nav-badge" style="background:#305A80;">58</span>
+    </button>
+    <button class="nav-item" onclick="showPage('etudiants', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+      Étudiants
+      <span class="nav-badge ok">240</span>
+    </button>
+
+    <div class="nav-label">Configuration</div>
+    <button class="nav-item" onclick="showPage('parametres', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 12 2a10 10 0 0 0-7.07 2.93M21.41 8.41A10 10 0 0 1 22 12a10 10 0 0 1-.59 3.59M2.59 15.59A10 10 0 0 1 2 12a10 10 0 0 1 .59-3.59M4.93 19.07A10 10 0 0 0 12 22a10 10 0 0 0 7.07-2.93"/></svg>
+      Paramètres
+    </button>
+
+    <div class="nav-label">Traçabilité</div>
+    <button class="nav-item" onclick="showPage('audit', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Journal d'audit
+      <span class="nav-badge warn">5</span>
+    </button>
+    <button class="nav-item" onclick="showPage('exports', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exports
+    </button>
+  </nav>
+
+  <div class="user-card">
+    <div class="avatar-sm">SA</div>
+    <div style="flex:1;min-width:0;">
+      <div class="user-name">Super Admin</div>
+      <div class="user-role">Administrateur global</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#98C7D5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;flex-shrink:0;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+  </div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div>
+      <div class="page-title" id="topbar-title">Statistiques</div>
+      <div class="page-sub" id="topbar-sub">Indicateurs clés de la plateforme</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="Rechercher un utilisateur…">
+      </div>
+      <div class="icon-btn" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </div>
+      <button class="btn-primary" onclick="openModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ════════════════════════════════
+         PAGE: STATISTIQUES
+    ════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- Hero -->
+      <div class="admin-hero">
+        <div class="avatar-lg">📊</div>
+        <div>
+          <div class="hero-name">Statistiques Plateforme</div>
+          <div class="hero-role">Session 2025 – 2026</div>
+          <div class="hero-sub">Dernière mise à jour : aujourd'hui à 09:14 · Maroc</div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-n">14</div>
+            <div class="hero-stat-l">Écoles</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-n">58</div>
+            <div class="hero-stat-l">Entreprises</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-n">89%</div>
+            <div class="hero-stat-l">Taux placement</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-n">4.2</div>
+            <div class="hero-stat-l">Candidatures/étud.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs principaux -->
+      <div class="kpi-grid">
+        <!-- Nbr Écoles -->
+        <div class="kpi-card" style="--kpi-color:#9B1D20;">
+          <div class="kpi-top">
+            <div class="kpi-icon" style="background:#fdecea;font-size:20px;">🏫</div>
+            <span class="kpi-trend up">↑ 2 ce mois</span>
+          </div>
+          <div>
+            <div class="kpi-n">14</div>
+            <div class="kpi-l">Écoles partenaires</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:11px;background:#fdecea;color:#9B1D20;padding:2px 8px;border-radius:20px;font-weight:500;">12 actives</span>
+            <span style="font-size:11px;background:var(--warning-bg);color:var(--warning);padding:2px 8px;border-radius:20px;font-weight:500;">2 config.</span>
+          </div>
+        </div>
+
+        <!-- Nbr Entreprises -->
+        <div class="kpi-card green">
+          <div class="kpi-top">
+            <div class="kpi-icon green" style="font-size:20px;">🏢</div>
+            <span class="kpi-trend up">↑ 5 ce mois</span>
+          </div>
+          <div>
+            <div class="kpi-n">58</div>
+            <div class="kpi-l">Entreprises partenaires</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:11px;background:var(--success-bg);color:var(--success);padding:2px 8px;border-radius:20px;font-weight:500;">51 vérifiées</span>
+            <span style="font-size:11px;background:var(--warning-bg);color:var(--warning);padding:2px 8px;border-radius:20px;font-weight:500;">7 en attente</span>
+          </div>
+        </div>
+
+        <!-- Quotient stage -->
+        <div class="kpi-card orange">
+          <div class="kpi-top">
+            <div class="kpi-icon orange" style="font-size:20px;">🎯</div>
+            <span class="kpi-trend up">↑ 4%</span>
+          </div>
+          <div>
+            <div class="kpi-n">89%</div>
+            <div class="kpi-l">Taux de placement</div>
+          </div>
+          <div style="margin-top:8px;">
+            <div style="font-size:11.5px;color:var(--muted);margin-bottom:4px;">214 stagiaires / 240 candidats</div>
+            <div style="height:6px;background:var(--surface);border-radius:20px;overflow:hidden;">
+              <div style="height:100%;width:89%;background:#E58D1E;border-radius:20px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Moyenne candidatures -->
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-icon" style="font-size:20px;">📋</div>
+            <span class="kpi-trend flat">= stable</span>
+          </div>
+          <div>
+            <div class="kpi-n">4.2</div>
+            <div class="kpi-l">Moy. candidatures / étudiant</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:11px;background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:20px;font-weight:500;">1 024 total</span>
+            <span style="font-size:11px;background:var(--surface);color:var(--muted);padding:2px 8px;border-radius:20px;font-weight:500;">240 étudiants</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graphiques détaillés -->
+      <div class="grid-2" style="margin-bottom:24px;">
+
+        <!-- Répartition des candidatures par statut -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom:18px;">
+            <div>
+              <div class="section-title">Candidatures par statut</div>
+              <div class="section-sub">1 024 candidatures au total</div>
+            </div>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-row">
+              <span class="bar-label">Acceptées</span>
+              <div class="bar-track"><div class="bar-fill" style="width:56%;background:var(--success);"></div></div>
+              <span class="bar-val">574</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">En attente</span>
+              <div class="bar-track"><div class="bar-fill" style="width:22%;background:#E58D1E;"></div></div>
+              <span class="bar-val">225</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Refusées</span>
+              <div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--danger);"></div></div>
+              <span class="bar-val">143</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Annulées</span>
+              <div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--light);"></div></div>
+              <span class="bar-val">82</span>
+            </div>
+          </div>
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12.5px;color:var(--muted);">Taux de conversion global</span>
+              <span style="font-size:14px;font-weight:700;color:var(--success);">56%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Répartition par école -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom:18px;">
+            <div>
+              <div class="section-title">Placement par école</div>
+              <div class="section-sub">Top établissements</div>
+            </div>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-row">
+              <span class="bar-label">ENSIAS</span>
+              <div class="bar-track"><div class="bar-fill" style="width:92%;background:#9B1D20;"></div></div>
+              <span class="bar-val">92%</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">EMI</span>
+              <div class="bar-track"><div class="bar-fill" style="width:88%;background:#9B1D20;"></div></div>
+              <span class="bar-val">88%</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">ENSA Mkch</span>
+              <div class="bar-track"><div class="bar-fill" style="width:79%;background:#9B1D20;opacity:.7;"></div></div>
+              <span class="bar-val">79%</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">EST Salé</span>
+              <div class="bar-track"><div class="bar-fill" style="width:75%;background:#9B1D20;opacity:.5;"></div></div>
+              <span class="bar-val">75%</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Autres</span>
+              <div class="bar-track"><div class="bar-fill" style="width:68%;background:var(--light);"></div></div>
+              <span class="bar-val">68%</span>
+            </div>
+          </div>
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12.5px;color:var(--muted);">Meilleure école</span>
+              <span style="font-size:14px;font-weight:700;color:#9B1D20;">ENSIAS — 92%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secteurs + Donut statuts étudiants -->
+      <div class="grid-3">
+        <!-- Top secteurs entreprises -->
+        <div class="card" style="grid-column:span 2;">
+          <div class="section-header" style="margin-bottom:18px;">
+            <div>
+              <div class="section-title">Top secteurs d'accueil</div>
+              <div class="section-sub">Répartition des stages par secteur entreprise</div>
+            </div>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-row">
+              <span class="bar-label">IT / Logiciel</span>
+              <div class="bar-track"><div class="bar-fill" style="width:72%;background:#305A80;"></div></div>
+              <span class="bar-val">155</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Finance</span>
+              <div class="bar-track"><div class="bar-fill" style="width:48%;background:#305A80;opacity:.8;"></div></div>
+              <span class="bar-val">103</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Industrie</span>
+              <div class="bar-track"><div class="bar-fill" style="width:36%;background:#305A80;opacity:.65;"></div></div>
+              <span class="bar-val">77</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Telecom</span>
+              <div class="bar-track"><div class="bar-fill" style="width:25%;background:#305A80;opacity:.5;"></div></div>
+              <span class="bar-val">54</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Autres</span>
+              <div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--light);"></div></div>
+              <span class="bar-val">39</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Donut statut étudiants -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom:16px;">
+            <div>
+              <div class="section-title">Statut étudiants</div>
+              <div class="section-sub">240 inscrits</div>
+            </div>
+          </div>
+          <div class="donut-wrap" style="margin-bottom:16px;">
+            <div class="donut">
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#f4f8fa" stroke-width="14"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="var(--success)" stroke-width="14" stroke-dasharray="197 23" stroke-dashoffset="0"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#E58D1E" stroke-width="14" stroke-dasharray="18 202" stroke-dashoffset="-197"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="var(--muted)" stroke-width="14" stroke-dasharray="5 215" stroke-dashoffset="-215"/>
+              </svg>
+            </div>
+            <div class="donut-legend">
+              <div class="donut-leg-item"><span class="donut-leg-dot" style="background:var(--success)"></span>Placés<span class="donut-leg-pct">89%</span></div>
+              <div class="donut-leg-item"><span class="donut-leg-dot" style="background:#E58D1E"></span>En recherche<span class="donut-leg-pct">9%</span></div>
+              <div class="donut-leg-item"><span class="donut-leg-dot" style="background:var(--muted)"></span>Inactifs<span class="donut-leg-pct">2%</span></div>
+            </div>
+          </div>
+          <div style="padding-top:14px;border-top:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:12px;color:var(--muted);">Stage trouvé</span>
+              <span style="font-size:12px;font-weight:700;color:var(--success);">214</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="font-size:12px;color:var(--muted);">En recherche</span>
+              <span style="font-size:12px;font-weight:700;color:#E58D1E;">26</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         PAGE: TOUS LES UTILISATEURS
+    ════════════════════════════════ -->
+    <div class="page" id="page-users">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Tous les utilisateurs</div>
+          <div class="section-sub">CRUD complet — 312 comptes</div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exporter
+          </button>
+          <button class="btn-primary" onclick="openModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nouvel utilisateur
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterUsers('all',this)">Tous (312)</button>
+        <button class="filter-tab" onclick="filterUsers('admin',this)">Admins (3)</button>
+        <button class="filter-tab" onclick="filterUsers('ecole',this)">Écoles (14)</button>
+        <button class="filter-tab" onclick="filterUsers('entreprise',this)">Entreprises (58)</button>
+        <button class="filter-tab" onclick="filterUsers('etudiant',this)">Étudiants (240)</button>
+        <button class="filter-tab" onclick="filterUsers('inactive',this)">Suspendus (7)</button>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="padding-left:20px;">Utilisateur</th>
+                <th>Rôle</th>
+                <th>Organisation</th>
+                <th>Statut</th>
+                <th>Dernière connexion</th>
+                <th style="padding-right:20px;text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-utype="admin">
+                <td style="padding-left:20px;">
+                  <div class="cell-user">
+                    <div class="avatar-xs" style="background:var(--accent);">SA</div>
+                    <div><div class="cell-name">Super Admin</div><div class="cell-email">admin@stagebot.ma</div></div>
+                  </div>
+                </td>
+                <td><span class="pill p-admin"><span class="pill-dot"></span>Admin</span></td>
+                <td style="color:var(--muted);font-size:13px;">StageBot Platform</td>
+                <td><span class="pill p-active"><span class="pill-dot"></span>Actif</span></td>
+                <td style="font-size:12.5px;color:var(--muted);">Aujourd'hui 09:14</td>
+                <td style="padding-right:20px;text-align:right;">
+                  <div class="action-btns" style="justify-content:flex-end;">
+                    <button class="action-btn" title="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="action-btn danger" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-utype="ecole">
+                <td style="padding-left:20px;">
+                  <div class="cell-user">
+                    <div class="avatar-xs" style="background:#9B1D20;">EN</div>
+                    <div><div class="cell-name">Dr. Fatima Zahra Benali</div><div class="cell-email">fz.benali@ensias.ma</div></div>
+                  </div>
+                </td>
+                <td><span class="pill p-ecole"><span class="pill-dot"></span>École</span></td>
+                <td style="font-size:13px;">ENSIAS — Rabat</td>
+                <td><span class="pill p-active"><span class="pill-dot"></span>Actif</span></td>
+                <td style="font-size:12.5px;color:var(--muted);">Hier 16:42</td>
+                <td style="padding-right:20px;text-align:right;">
+                  <div class="action-btns" style="justify-content:flex-end;">
+                    <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-utype="entreprise">
+                <td style="padding-left:20px;">
+                  <div class="cell-user">
+                    <div class="avatar-xs" style="background:#305A80;">OC</div>
+                    <div><div class="cell-name">Yassine Alaoui</div><div class="cell-email">y.alaoui@ocp.ma</div></div>
+                  </div>
+                </td>
+                <td><span class="pill p-entreprise"><span class="pill-dot"></span>Entreprise</span></td>
+                <td style="font-size:13px;">OCP Group</td>
+                <td><span class="pill p-active"><span class="pill-dot"></span>Actif</span></td>
+                <td style="font-size:12.5px;color:var(--muted);">15 mai 2026</td>
+                <td style="padding-right:20px;text-align:right;">
+                  <div class="action-btns" style="justify-content:flex-end;">
+                    <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-utype="etudiant">
+                <td style="padding-left:20px;">
+                  <div class="cell-user">
+                    <div class="avatar-xs" style="background:#1a7a42;">KE</div>
+                    <div><div class="cell-name">Karim El Amrani</div><div class="cell-email">k.elamrani@ensias.ma</div></div>
+                  </div>
+                </td>
+                <td><span class="pill p-etudiant"><span class="pill-dot"></span>Étudiant</span></td>
+                <td style="font-size:13px;">ENSIAS — 5A IA</td>
+                <td><span class="pill p-active"><span class="pill-dot"></span>Actif</span></td>
+                <td style="font-size:12.5px;color:var(--muted);">Aujourd'hui 08:01</td>
+                <td style="padding-right:20px;text-align:right;">
+                  <div class="action-btns" style="justify-content:flex-end;">
+                    <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-utype="etudiant">
+                <td style="padding-left:20px;">
+                  <div class="cell-user">
+                    <div class="avatar-xs" style="background:#1a7a42;">SB</div>
+                    <div><div class="cell-name">Sara Benhaddou</div><div class="cell-email">s.benhaddou@emi.ac.ma</div></div>
+                  </div>
+                </td>
+                <td><span class="pill p-etudiant"><span class="pill-dot"></span>Étudiant</span></td>
+                <td style="font-size:13px;">EMI — 5A GI</td>
+                <td><span class="pill p-pending"><span class="pill-dot"></span>En attente</span></td>
+                <td style="font-size:12.5px;color:var(--muted);">12 mai 2026</td>
+                <td style="padding-right:20px;text-align:right;">
+                  <div class="action-btns" style="justify-content:flex-end;">
+                    <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-utype="inactive">
+                <td style="padding-left:20px;">
+                  <div class="cell-user">
+                    <div class="avatar-xs" style="background:#aaa;">AO</div>
+                    <div><div class="cell-name">Ancien Ouali</div><div class="cell-email">a.ouali@gmail.com</div></div>
+                  </div>
+                </td>
+                <td><span class="pill p-etudiant"><span class="pill-dot"></span>Étudiant</span></td>
+                <td style="font-size:13px;color:var(--muted);">Promotion 2022</td>
+                <td><span class="pill p-inactive"><span class="pill-dot"></span>Suspendu</span></td>
+                <td style="font-size:12.5px;color:var(--muted);">03 jan. 2023</td>
+                <td style="padding-right:20px;text-align:right;">
+                  <div class="action-btns" style="justify-content:flex-end;">
+                    <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="action-btn success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:12.5px;color:var(--muted);">Affichage 1–6 sur 312 utilisateurs</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-ghost" style="padding:5px 12px;font-size:12px;">← Précédent</button>
+            <button class="btn-primary" style="padding:5px 12px;font-size:12px;">Suivant →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         PAGE: ÉCOLES
+    ════════════════════════════════ -->
+    <div class="page" id="page-ecoles">
+      <div class="section-header">
+        <div><div class="section-title">Gestion des Écoles</div><div class="section-sub">14 établissements partenaires</div></div>
+        <button class="btn-primary" onclick="openModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter une école
+        </button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table>
+          <thead>
+            <tr>
+              <th style="padding-left:20px;">École</th>
+              <th>Ville</th>
+              <th>Étudiants placés</th>
+              <th>Hors stage</th>
+              <th>Entreprises partenaires</th>
+              <th>Statut</th>
+              <th style="padding-right:20px;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- ENSIAS -->
+            <tr>
+              <td style="padding-left:20px;"><div class="cell-user"><div class="avatar-xs" style="background:#9B1D20;">EN</div><div><div class="cell-name">ENSIAS</div><div class="cell-email">ensias.um5.ac.ma</div></div></div></td>
+              <td style="font-size:13px;">Rabat</td>
+              <td>
+                <button onclick="showEcoleDetail('ensias','placed')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--success);text-decoration:underline dotted;" title="Voir les étudiants placés">90 🎓</button>
+              </td>
+              <td>
+                <button onclick="showEcoleDetail('ensias','notplaced')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--warning);text-decoration:underline dotted;" title="Voir les étudiants sans stage">8 ⚠️</button>
+              </td>
+              <td>
+                <button onclick="showEcoleDetail('ensias','partners')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue);text-decoration:underline dotted;" title="Voir les entreprises partenaires">24 🏢</button>
+              </td>
+              <td><span class="pill p-active" id="ecole-status-ensias"><span class="pill-dot"></span>Active</span></td>
+              <td style="padding-right:20px;text-align:right;">
+                <div class="action-btns" style="justify-content:flex-end;">
+                  <button class="action-btn" title="Voir détail" onclick="showEcoleDetail('ensias','all')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="action-btn" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn" title="Activer / Désactiver" onclick="toggleEcole('ensias',this)" style="color:var(--success);border-color:var(--success);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  </button>
+                  <button class="action-btn danger" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                </div>
+              </td>
+            </tr>
+            <!-- EMI -->
+            <tr>
+              <td style="padding-left:20px;"><div class="cell-user"><div class="avatar-xs" style="background:#9B1D20;">EM</div><div><div class="cell-name">EMI</div><div class="cell-email">emi.ac.ma</div></div></div></td>
+              <td style="font-size:13px;">Rabat</td>
+              <td><button onclick="showEcoleDetail('emi','placed')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--success);text-decoration:underline dotted;">66 🎓</button></td>
+              <td><button onclick="showEcoleDetail('emi','notplaced')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--warning);text-decoration:underline dotted;">8 ⚠️</button></td>
+              <td><button onclick="showEcoleDetail('emi','partners')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue);text-decoration:underline dotted;">18 🏢</button></td>
+              <td><span class="pill p-active" id="ecole-status-emi"><span class="pill-dot"></span>Active</span></td>
+              <td style="padding-right:20px;text-align:right;">
+                <div class="action-btns" style="justify-content:flex-end;">
+                  <button class="action-btn" onclick="showEcoleDetail('emi','all')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn" onclick="toggleEcole('emi',this)" style="color:var(--success);border-color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></button>
+                  <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                </div>
+              </td>
+            </tr>
+            <!-- ENSA Marrakech -->
+            <tr>
+              <td style="padding-left:20px;"><div class="cell-user"><div class="avatar-xs" style="background:#9B1D20;">UM</div><div><div class="cell-name">ENSA Marrakech</div><div class="cell-email">ensa-marrakech.ac.ma</div></div></div></td>
+              <td style="font-size:13px;">Marrakech</td>
+              <td><button onclick="showEcoleDetail('ensa-mkch','placed')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--success);text-decoration:underline dotted;">33 🎓</button></td>
+              <td><button onclick="showEcoleDetail('ensa-mkch','notplaced')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--warning);text-decoration:underline dotted;">9 ⚠️</button></td>
+              <td><button onclick="showEcoleDetail('ensa-mkch','partners')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue);text-decoration:underline dotted;">11 🏢</button></td>
+              <td><span class="pill p-pending" id="ecole-status-ensa-mkch"><span class="pill-dot"></span>Configuration</span></td>
+              <td style="padding-right:20px;text-align:right;">
+                <div class="action-btns" style="justify-content:flex-end;">
+                  <button class="action-btn" onclick="showEcoleDetail('ensa-mkch','all')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="action-btn success" onclick="toggleEcole('ensa-mkch',this)" title="Activer l'école"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Panneau détail école (overlay slide-in) -->
+      <div id="ecole-detail-panel" style="display:none;position:fixed;top:0;right:0;width:420px;height:100vh;background:var(--white);border-left:1px solid var(--border);z-index:50;box-shadow:-8px 0 32px rgba(0,0,0,.12);overflow-y:auto;flex-direction:column;">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:1;">
+          <div>
+            <div id="panel-ecole-title" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;"></div>
+            <div id="panel-ecole-sub" style="font-size:12px;color:var(--muted);margin-top:2px;"></div>
+          </div>
+          <button class="close-btn" onclick="closeEcolePanel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div id="panel-ecole-body" style="padding:20px 24px;"></div>
+      </div>
+      <div id="ecole-overlay-bg" onclick="closeEcolePanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;"></div>
+    </div>
+
+    <!-- ════════════════════════════════
+         PAGE: ENTREPRISES
+    ════════════════════════════════ -->
+    <div class="page" id="page-entreprises">
+      <div class="section-header">
+        <div><div class="section-title">Gestion des Entreprises</div><div class="section-sub">58 entreprises partenaires</div></div>
+        <button class="btn-primary" onclick="openModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter une entreprise
+        </button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table>
+          <thead>
+            <tr>
+              <th style="padding-left:20px;">Entreprise</th>
+              <th>Secteur</th>
+              <th>Écoles partenaires</th>
+              <th>Étudiants candidats</th>
+              <th>Offres</th>
+              <th style="padding-right:20px;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- OCP -->
+            <tr>
+              <td style="padding-left:20px;"><div class="cell-user"><div class="avatar-xs" style="background:#305A80;">OC</div><div><div class="cell-name">OCP Group</div><div class="cell-email">ocp.ma</div></div></div></td>
+              <td style="font-size:13px;">Industrie / Mining</td>
+              <td>
+                <button onclick="showEntrepriseDetail('ocp','schools')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:#9B1D20;text-decoration:underline dotted;" title="Voir les écoles partenaires">8 🏫</button>
+              </td>
+              <td>
+                <button onclick="showEntrepriseDetail('ocp','students')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--accent);text-decoration:underline dotted;" title="Voir les étudiants candidats">34 👤</button>
+              </td>
+              <td>
+                <button onclick="showEntrepriseDetail('ocp','offres')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--accent);text-decoration:underline dotted;" title="Gérer les offres">8 offres 📋</button>
+              </td>
+              <td style="padding-right:20px;text-align:right;">
+                <div class="action-btns" style="justify-content:flex-end;">
+                  <button class="action-btn" onclick="showEntrepriseDetail('ocp','all')" title="Voir détail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="action-btn" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn danger" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                </div>
+              </td>
+            </tr>
+            <!-- Wafasalaf -->
+            <tr>
+              <td style="padding-left:20px;"><div class="cell-user"><div class="avatar-xs" style="background:#305A80;">WF</div><div><div class="cell-name">Wafasalaf</div><div class="cell-email">wafasalaf.ma</div></div></div></td>
+              <td style="font-size:13px;">Finance / Crédit</td>
+              <td><button onclick="showEntrepriseDetail('wafa','schools')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:#9B1D20;text-decoration:underline dotted;">5 🏫</button></td>
+              <td><button onclick="showEntrepriseDetail('wafa','students')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--accent);text-decoration:underline dotted;">12 👤</button></td>
+              <td>
+                <button onclick="showEntrepriseDetail('wafa','offres')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--accent);text-decoration:underline dotted;" title="Gérer les offres">3 offres 📋</button>
+              </td>
+              <td style="padding-right:20px;text-align:right;">
+                <div class="action-btns" style="justify-content:flex-end;">
+                  <button class="action-btn" onclick="showEntrepriseDetail('wafa','all')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                </div>
+              </td>
+            </tr>
+            <!-- NovatechDev -->
+            <tr>
+              <td style="padding-left:20px;"><div class="cell-user"><div class="avatar-xs" style="background:#aaa;">NO</div><div><div class="cell-name">NovatechDev</div><div class="cell-email">novatechdev.ma</div></div></div></td>
+              <td style="font-size:13px;">IT / Logiciel</td>
+              <td><button onclick="showEntrepriseDetail('nova','schools')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:#9B1D20;text-decoration:underline dotted;">2 🏫</button></td>
+              <td><button onclick="showEntrepriseDetail('nova','students')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--accent);text-decoration:underline dotted;">2 👤</button></td>
+              <td>
+                <button onclick="showEntrepriseDetail('nova','offres')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);text-decoration:underline dotted;" title="Gérer les offres">1 offre 📋</button>
+              </td>
+              <td style="padding-right:20px;text-align:right;">
+                <div class="action-btns" style="justify-content:flex-end;">
+                  <button class="action-btn" onclick="showEntrepriseDetail('nova','all')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="action-btn success" title="Valider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Panneau détail entreprise -->
+      <div id="entreprise-detail-panel" style="display:none;position:fixed;top:0;right:0;width:420px;height:100vh;background:var(--white);border-left:1px solid var(--border);z-index:50;box-shadow:-8px 0 32px rgba(0,0,0,.12);overflow-y:auto;">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:1;">
+          <div>
+            <div id="panel-ent-title" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;"></div>
+            <div id="panel-ent-sub" style="font-size:12px;color:var(--muted);margin-top:2px;"></div>
+          </div>
+          <button class="close-btn" onclick="closeEntreprisePanel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div id="panel-ent-body" style="padding:20px 24px;"></div>
+      </div>
+      <div id="ent-overlay-bg" onclick="closeEntreprisePanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;"></div>
+    </div>
+
+    <!-- ════════════════════════════════
+         PAGE: COURRIER OFFRES
+    ════════════════════════════════ -->
+    <div class="page" id="page-courrier">
+      <div class="section-header" style="margin-bottom:20px;">
+        <div>
+          <div class="section-title">Courrier — Offres en attente</div>
+          <div class="section-sub">Validez ou refusez chaque offre soumise par les entreprises</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="filter-tab active" id="tab-courrier-all"    onclick="filterCourrier('all',this)"    style="border:1px solid var(--border);">Toutes <span id="cnt-all">7</span></button>
+          <button class="filter-tab"        id="tab-courrier-wait"   onclick="filterCourrier('wait',this)"   style="border:1px solid var(--border);">⏳ En attente <span id="cnt-wait">5</span></button>
+          <button class="filter-tab"        id="tab-courrier-ok"     onclick="filterCourrier('ok',this)"     style="border:1px solid var(--border);">✅ Acceptées <span id="cnt-ok">1</span></button>
+          <button class="filter-tab"        id="tab-courrier-refuse" onclick="filterCourrier('refuse',this)" style="border:1px solid var(--border);">🚫 Refusées <span id="cnt-refuse">1</span></button>
+        </div>
+      </div>
+
+      <div id="courrier-list" style="display:flex;flex-direction:column;gap:14px;"></div>
+
+      <!-- Modale de refus avec motif -->
+      <div id="refus-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:var(--white);border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+          <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">🚫 Motif de refus</div>
+            <button class="close-btn" onclick="closeRefusModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+          <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+            <div style="font-size:13px;color:var(--muted);">Sélectionnez un motif ou rédigez un message personnalisé :</div>
+            <div style="display:flex;flex-direction:column;gap:8px;" id="motif-list">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="radio" name="motif" value="Offre non conforme aux exigences de la plateforme." style="accent-color:var(--accent);"> Offre non conforme aux exigences</label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="radio" name="motif" value="Informations incomplètes ou incorrectes."> Informations incomplètes / incorrectes</label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="radio" name="motif" value="Secteur ou filière non éligible pour la session en cours."> Secteur / filière non éligible</label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="radio" name="motif" value="Autre (voir message ci-dessous)."> Autre</label>
+            </div>
+            <textarea id="motif-texte" placeholder="Message complémentaire (optionnel)…" style="resize:vertical;min-height:80px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--text);background:var(--surface);outline:none;"></textarea>
+          </div>
+          <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
+            <button class="btn-ghost" onclick="closeRefusModal()">Annuler</button>
+            <button class="btn-primary" style="background:var(--danger);" onclick="confirmerRefus()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Confirmer le refus
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modale de commentaire (offres refusées) -->
+      <div id="comment-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:var(--white);border-radius:16px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+          <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">💬 Ajouter un commentaire</div>
+            <button class="close-btn" onclick="closeCommentModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+          <div style="padding:20px 24px;display:flex;flex-direction:column;gap:12px;">
+            <div style="font-size:13px;color:var(--muted);">Ce commentaire sera visible dans le dossier de l'offre refusée :</div>
+            <textarea id="comment-texte" placeholder="Ex : Merci de corriger la description et de soumettre à nouveau…" style="resize:vertical;min-height:100px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+          </div>
+          <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
+            <button class="btn-ghost" onclick="closeCommentModal()">Annuler</button>
+            <button class="btn-primary" onclick="envoyerCommentaire()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Envoyer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panneau détail offre (slide-in) -->
+      <div id="offre-detail-panel" style="display:none;position:fixed;top:0;right:0;width:460px;height:100vh;background:var(--white);border-left:1px solid var(--border);z-index:50;box-shadow:-8px 0 32px rgba(0,0,0,.12);overflow-y:auto;flex-direction:column;">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:1;">
+          <div>
+            <div id="detail-panel-titre" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;"></div>
+            <div id="detail-panel-entreprise" style="font-size:12px;color:var(--muted);margin-top:2px;"></div>
+          </div>
+          <button class="close-btn" onclick="closeDetailPanel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div id="detail-panel-body" style="padding:20px 24px;"></div>
+      </div>
+      <div id="offre-detail-overlay" onclick="closeDetailPanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;"></div>
+    </div>
+
+    <!-- ════════════════════════════════
+         PAGE: ÉTUDIANTS
+    ════════════════════════════════ -->
+    <div class="page" id="page-etudiants">
+      <div class="section-header">
+        <div><div class="section-title">Gestion des Étudiants</div><div class="section-sub">240 étudiants inscrits sur la plateforme</div></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exporter</button>
+          <button class="btn-primary" onclick="openModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter</button>
+        </div>
+      </div>
+      <div class="card" style="padding:16px 20px 8px;margin-bottom:16px;">
+        <div style="display:flex;gap:24px;text-align:center;">
+          <div><div style="font-size:22px;font-weight:700;color:var(--success);">214</div><div style="font-size:11px;color:var(--muted);">Stage trouvé</div></div>
+          <div style="width:1px;background:var(--border);"></div>
+          <div><div style="font-size:22px;font-weight:700;color:var(--warning);">26</div><div style="font-size:11px;color:var(--muted);">En recherche</div></div>
+          <div style="width:1px;background:var(--border);"></div>
+          <div><div style="font-size:22px;font-weight:700;color:var(--accent);">89%</div><div style="font-size:11px;color:var(--muted);">Taux placement</div></div>
+          <div style="width:1px;background:var(--border);"></div>
+          <div><div style="font-size:22px;font-weight:700;">4.2★</div><div style="font-size:11px;color:var(--muted);">Satisfaction moy.</div></div>
+        </div>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterEtudiants('all',this)">Tous (240)</button>
+        <button class="filter-tab" onclick="filterEtudiants('placed',this)">🎓 En stage (214)</button>
+        <button class="filter-tab" onclick="filterEtudiants('searching',this)">⚠️ Sans stage (26)</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table>
+          <thead>
+            <tr>
+              <th style="padding-left:20px;">Étudiant</th>
+              <th>École / Filière</th>
+              <th>Candidatures</th>
+              <th>Stage</th>
+              <th>Statut</th>
+              <th style="padding-right:20px;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-estatus="placed">
+              <td style="padding-left:20px;"><div class="cell-user"><div class="avatar-xs" style="background:#1a7a42;">KE</div><div><div class="cell-name">Karim El Amrani</div><div class="cell-email">k.elamrani@ensias.ma</div></div></div></td>
+              <td style="font-size:13px;">ENSIAS — 5A IA</td>
+              <td style="font-size:13px;font-weight:600;">7</td>
+              <td style="font-size:13px;color:var(--success);" id="stage-karim">✓ Wafasalaf</td>
+              <td><span class="pill p-active" id="pill-karim"><span class="pill-dot"></span>Placé</span></td>
+              <td style="padding-right:20px;text-align:right;">
+                <div class="action-btns" style="justify-content:flex-end;">
+                  <button class="action-btn" title="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="action-btn" title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn danger" title="Retirer le stage" onclick="retirerStage('karim', this)" style="color:var(--warning);border-color:var(--warning);" id="btn-retire-karim">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
+                  </button>
+                  <button class="action-btn danger" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tr data-estatus="searching">
+              <td style="padding-left:20px;"><div class="cell-user"><div class="avatar-xs" style="background:#1a7a42;">SB</div><div><div class="cell-name">Sara Benhaddou</div><div class="cell-email">s.benhaddou@emi.ac.ma</div></div></div></td>
+              <td style="font-size:13px;">EMI — 5A GI</td>
+              <td style="font-size:13px;font-weight:600;">3</td>
+              <td style="font-size:13px;color:var(--warning);" id="stage-sara">En recherche</td>
+              <td><span class="pill p-pending" id="pill-sara"><span class="pill-dot"></span>En cours</span></td>
+              <td style="padding-right:20px;text-align:right;">
+                <div class="action-btns" style="justify-content:flex-end;">
+                  <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                  <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         PAGE: PARAMÈTRES
+    ════════════════════════════════ -->
+    <div class="page" id="page-parametres">
+      <div class="section-header" style="margin-bottom:24px;">
+        <div><div class="section-title">Paramètres de la plateforme</div><div class="section-sub">Configuration globale de StageBot</div></div>
+        <button class="btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Sauvegarder
+        </button>
+      </div>
+
+      <div class="param-section">
+        <div class="param-head">
+          <span class="param-head-icon">🏢</span>
+          <div>
+            <div class="param-head-title">Informations de la plateforme</div>
+            <div class="param-head-sub">Nom, logo, coordonnées de contact</div>
+          </div>
+        </div>
+        <div class="param-body">
+          <div class="param-row">
+            <div class="form-group">
+              <label class="form-label">Nom de la plateforme</label>
+              <input class="form-input" type="text" value="StageBot">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email de contact</label>
+              <input class="form-input" type="email" value="contact@stagebot.ma">
+            </div>
+          </div>
+          <div class="param-row">
+            <div class="form-group">
+              <label class="form-label">Session académique en cours</label>
+              <input class="form-input" type="text" value="2025 – 2026">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Langue par défaut</label>
+              <select class="form-select form-input">
+                <option selected>Français</option>
+                <option>العربية</option>
+                <option>English</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="param-section">
+        <div class="param-head">
+          <span class="param-head-icon">🔔</span>
+          <div>
+            <div class="param-head-title">Notifications & Alertes</div>
+            <div class="param-head-sub">Gérer les envois automatiques</div>
+          </div>
+        </div>
+        <div class="param-body">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Emails de bienvenue automatiques</span>
+              <span class="toggle-desc">Envoyé dès qu'un nouveau compte est validé</span>
+            </div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Rappels conventions en attente</span>
+              <span class="toggle-desc">Relance automatique après 7 jours sans action</span>
+            </div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Alertes de connexion suspecte</span>
+              <span class="toggle-desc">Notification admin en cas d'anomalie de sécurité</span>
+            </div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Rapport hebdomadaire</span>
+              <span class="toggle-desc">Synthèse PDF envoyée chaque lundi matin</span>
+            </div>
+            <button class="toggle" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="param-section">
+        <div class="param-head">
+          <span class="param-head-icon">🔐</span>
+          <div>
+            <div class="param-head-title">Sécurité & Accès</div>
+            <div class="param-head-sub">Politiques de mots de passe et sessions</div>
+          </div>
+        </div>
+        <div class="param-body">
+          <div class="param-row">
+            <div class="form-group">
+              <label class="form-label">Durée de session (heures)</label>
+              <input class="form-input" type="number" value="8">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tentatives max avant blocage</label>
+              <input class="form-input" type="number" value="5">
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Double authentification (2FA) obligatoire</span>
+              <span class="toggle-desc">Pour les comptes Admin et École uniquement</span>
+            </div>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Inscription ouverte au public</span>
+              <span class="toggle-desc">Désactiver pour limiter l'inscription sur invitation</span>
+            </div>
+            <button class="toggle" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         PAGE: JOURNAL D'AUDIT
+    ════════════════════════════════ -->
+    <div class="page" id="page-audit">
+      <div class="section-header">
+        <div><div class="section-title">Journal d'audit</div><div class="section-sub">Traçabilité complète de toutes les actions</div></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exporter CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterAudit('all',this)">Tous</button>
+        <button class="filter-tab" onclick="filterAudit('create',this)">Créations</button>
+        <button class="filter-tab" onclick="filterAudit('update',this)">Modifications</button>
+        <button class="filter-tab" onclick="filterAudit('delete',this)">Suppressions</button>
+        <button class="filter-tab" onclick="filterAudit('login',this)">Connexions</button>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;flex-direction:column;">
+          <div class="audit-item" data-atype="create">
+            <span class="audit-type create">CREATE</span>
+            <span class="audit-user">Super Admin</span>
+            <span class="audit-desc">Création du compte école ENSA Marrakech</span>
+            <span class="audit-time">Auj. 11:32</span>
+          </div>
+          <div class="audit-item" data-atype="login">
+            <span class="audit-type login">LOGIN</span>
+            <span class="audit-user">Dr. F. Benali</span>
+            <span class="audit-desc">Connexion depuis 196.200.84.xx (Rabat)</span>
+            <span class="audit-time">Auj. 10:54</span>
+          </div>
+          <div class="audit-item" data-atype="update">
+            <span class="audit-type update">UPDATE</span>
+            <span class="audit-user">Admin Hamid</span>
+            <span class="audit-desc">Modification du paramètre «Durée de session» : 4h → 8h</span>
+            <span class="audit-time">Auj. 10:12</span>
+          </div>
+          <div class="audit-item" data-atype="login">
+            <span class="audit-type login" style="background:#fdecea;color:var(--danger);">⚠ LOGIN</span>
+            <span class="audit-user">encadrant@ocp.ma</span>
+            <span class="audit-desc">5 tentatives de connexion échouées — compte temporairement bloqué</span>
+            <span class="audit-time">Auj. 09:47</span>
+          </div>
+          <div class="audit-item" data-atype="create">
+            <span class="audit-type create">CREATE</span>
+            <span class="audit-user">Super Admin</span>
+            <span class="audit-desc">Export CSV «Candidatures — Mai 2026» généré (3 782 lignes)</span>
+            <span class="audit-time">Auj. 09:21</span>
+          </div>
+          <div class="audit-item" data-atype="delete">
+            <span class="audit-type delete">DELETE</span>
+            <span class="audit-user">Admin Hamid</span>
+            <span class="audit-desc">Archivage du compte etudiant a.ouali@gmail.com (promotion 2022)</span>
+            <span class="audit-time">Hier 17:05</span>
+          </div>
+          <div class="audit-item" data-atype="update">
+            <span class="audit-type update">UPDATE</span>
+            <span class="audit-user">Super Admin</span>
+            <span class="audit-desc">Validation du compte Novatechdev.ma — statut En attente → Vérifié</span>
+            <span class="audit-time">Hier 14:30</span>
+          </div>
+          <div class="audit-item" data-atype="create">
+            <span class="audit-type create">CREATE</span>
+            <span class="audit-user">Dr. F. Benali</span>
+            <span class="audit-desc">Ajout de la filière «Cybersécurité» dans les référentiels ENSIAS</span>
+            <span class="audit-time">Hier 11:08</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         PAGE: EXPORTS
+    ════════════════════════════════ -->
+    <div class="page" id="page-exports">
+      <div class="section-header" style="margin-bottom:24px;">
+        <div><div class="section-title">Centre d'exports</div><div class="section-sub">Téléchargez vos données en différents formats</div></div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;">Utilisateurs</div>
+        <div class="export-grid">
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">📊</div>
+            <div class="export-name">Tous les utilisateurs</div>
+            <div class="export-desc">Liste complète avec rôles, statuts et dates</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">CSV</button>
+          </div>
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">🏫</div>
+            <div class="export-name">Écoles & responsables</div>
+            <div class="export-desc">Coordonnées et statistiques par établissement</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">Excel</button>
+          </div>
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">🏢</div>
+            <div class="export-name">Annuaire entreprises</div>
+            <div class="export-desc">Toutes les entreprises vérifiées avec secteurs</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;">Stages & Conventions</div>
+        <div class="export-grid">
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">📋</div>
+            <div class="export-name">Toutes les candidatures</div>
+            <div class="export-desc">Historique complet avec statuts et décisions</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">CSV</button>
+          </div>
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">📄</div>
+            <div class="export-name">Conventions validées</div>
+            <div class="export-desc">Session 2025–2026, toutes écoles confondues</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">Excel</button>
+          </div>
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">📈</div>
+            <div class="export-name">Rapport de placement</div>
+            <div class="export-desc">Taux, délais, satisfaction — rapport annuel</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;">Audit & Sécurité</div>
+        <div class="export-grid">
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">🔍</div>
+            <div class="export-name">Journal d'audit complet</div>
+            <div class="export-desc">Toutes les actions horodatées sur la plateforme</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">CSV</button>
+          </div>
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">⚠️</div>
+            <div class="export-name">Alertes de sécurité</div>
+            <div class="export-desc">Tentatives échouées et anomalies détectées</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">PDF</button>
+          </div>
+          <div class="export-card" onclick="alert('Export en cours…')">
+            <div class="export-icon">🗓️</div>
+            <div class="export-name">Activité mensuelle</div>
+            <div class="export-desc">Connexions, créations et modifications par mois</div>
+            <button class="btn-ghost" style="margin-top:4px;font-size:12px;padding:5px 12px;">Excel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ═══════════════ MODAL: CRÉER UTILISATEUR ═══════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">Nouvel utilisateur</div>
+      <button class="close-btn" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="param-row">
+        <div class="form-group">
+          <label class="form-label">Prénom</label>
+          <input class="form-input" type="text" placeholder="Ex : Karim">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" placeholder="Ex : El Amrani">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adresse email</label>
+        <input class="form-input" type="email" placeholder="nom@organisation.ma">
+      </div>
+      <div class="param-row">
+        <div class="form-group">
+          <label class="form-label">Rôle</label>
+          <select class="form-select form-input">
+            <option>Étudiant</option>
+            <option>École (Responsable)</option>
+            <option>Entreprise (RH)</option>
+            <option>Encadrant académique</option>
+            <option>Administrateur</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Organisation</label>
+          <input class="form-input" type="text" placeholder="Ex : ENSIAS, OCP…">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Statut initial</label>
+        <select class="form-select form-input">
+          <option>Actif</option>
+          <option>En attente de validation</option>
+          <option>Suspendu</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn-primary" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Créer l'utilisateur
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ─── Navigation ─── */
+  const pageMeta = {
+    dashboard:    { title: 'Statistiques',                sub: "Indicateurs clés de la plateforme" },
+    users:        { title: 'Tous les utilisateurs',     sub: 'CRUD complet · 312 comptes' },
+    ecoles:       { title: 'Gestion des Écoles',        sub: '14 établissements partenaires' },
+    entreprises:  { title: 'Gestion des Entreprises',   sub: '58 entreprises partenaires' },
+    etudiants:    { title: 'Gestion des Étudiants',     sub: '240 étudiants inscrits' },
+    parametres:   { title: 'Paramètres',                sub: 'Configuration de la plateforme' },
+    audit:        { title: "Journal d'audit",            sub: 'Traçabilité complète des actions' },
+    courrier:     { title: 'Courrier — Offres en attente',  sub: 'Validez ou refusez les offres soumises par les entreprises' },
+  };
+
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    if (btn) btn.classList.add('active');
+    const m = pageMeta[id];
+    if (m) {
+      document.getElementById('topbar-title').textContent = m.title;
+      document.getElementById('topbar-sub').textContent   = m.sub;
+    }
+    if (id === 'courrier') renderCourrier();
+  }
+
+  /* ─── Filters ─── */
+  function filterUsers(type, btn) {
+    document.querySelectorAll('#page-users .filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('tr[data-utype]').forEach(r => {
+      r.style.display = (type === 'all' || r.dataset.utype === type) ? '' : 'none';
+    });
+  }
+
+  function filterAudit(type, btn) {
+    document.querySelectorAll('#page-audit .filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('[data-atype]').forEach(r => {
+      r.style.display = (type === 'all' || r.dataset.atype === type) ? '' : 'none';
+    });
+  }
+
+  /* ─── Filters étudiants ─── */
+  function filterEtudiants(type, btn) {
+    document.querySelectorAll('#page-etudiants .filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('tr[data-estatus]').forEach(r => {
+      r.style.display = (type === 'all' || r.dataset.estatus === type) ? '' : 'none';
+    });
+  }
+
+  /* ─── Toggle offres (fonction supprimée — remplacée par toggleOffreIndividuelle) ─── */
+
+  /* ─── Toggle école actif/inactif ─── */
+  const ecoleStates = {};
+  function toggleEcole(id, btn) {
+    const pill = document.getElementById('ecole-status-' + id);
+    if (!pill) return;
+    const isActive = pill.classList.contains('p-active');
+    if (isActive) {
+      pill.className = 'pill p-inactive';
+      pill.innerHTML = '<span class="pill-dot"></span>Désactivée';
+      btn.style.color = 'var(--danger)';
+      btn.style.borderColor = 'var(--danger)';
+      showToast('École désactivée — les étudiants ne peuvent plus candidater');
+    } else {
+      pill.className = 'pill p-active';
+      pill.innerHTML = '<span class="pill-dot"></span>Active';
+      btn.style.color = 'var(--success)';
+      btn.style.borderColor = 'var(--success)';
+      showToast('École réactivée avec succès');
+    }
+  }
+
+  /* ─── Retirer stage étudiant ─── */
+  function retirerStage(id, btn) {
+    if (!confirm('Confirmer le retrait du stage de cet étudiant ?')) return;
+    const stageCell = document.getElementById('stage-' + id);
+    const pill      = document.getElementById('pill-' + id);
+    const row       = btn.closest('tr');
+    if (stageCell) { stageCell.style.color = 'var(--warning)'; stageCell.textContent = 'En recherche'; }
+    if (pill)      { pill.className = 'pill p-pending'; pill.innerHTML = '<span class="pill-dot"></span>En cours'; }
+    if (row)       { row.dataset.estatus = 'searching'; }
+    btn.style.display = 'none';
+    showToast('Stage retiré — étudiant repositionné en recherche');
+  }
+
+  /* ─── Données mock pour les panneaux ─── */
+  const ecoleData = {
+    ensias: {
+      name: 'ENSIAS', placed: [
+        { name: 'Karim El Amrani', company: 'Wafasalaf', filiere: '5A IA' },
+        { name: 'Leila Ouazzani', company: 'OCP Group', filiere: '5A RSD' },
+        { name: 'Hamza Tazi', company: 'Marsa Maroc', filiere: '5A IA' },
+      ],
+      notplaced: [
+        { name: 'Omar Bennis', filiere: '5A GI', candidatures: 4 },
+        { name: 'Ines Kadiri', filiere: '5A IA', candidatures: 2 },
+      ],
+      partners: ['OCP Group', 'Wafasalaf', 'Marsa Maroc', 'IAM Maroc', 'Attijariwafa Bank', 'BMCE Bank']
+    },
+    emi: {
+      name: 'EMI', placed: [
+        { name: 'Sara Benhaddou', company: 'TechMa', filiere: '5A GI' },
+      ],
+      notplaced: [
+        { name: 'Yasmine El Fadli', filiere: '5A GI', candidatures: 3 },
+      ],
+      partners: ['TechMa', 'Altran Morocco', 'ATOS Maroc']
+    },
+    'ensa-mkch': {
+      name: 'ENSA Marrakech', placed: [
+        { name: 'Mehdi Rahmani', company: 'CIH Bank', filiere: '4A Elec' },
+      ],
+      notplaced: [
+        { name: 'Fatima Zahra Slaoui', filiere: '4A Info', candidatures: 1 },
+      ],
+      partners: ['CIH Bank', 'Managem Group']
+    }
+  };
+
+  const entrepriseData = {
+    ocp: {
+      name: 'OCP Group',
+      schools: ['ENSIAS', 'EMI', 'ENSA Agadir', 'ENSA Marrakech', 'FST Fès', 'ENSA Oujda', 'INPT', 'IAV Hassan II'],
+      students: [
+        { name: 'Karim El Amrani', school: 'ENSIAS', status: 'Accepté' },
+        { name: 'Asmaa Berrada', school: 'EMI', status: 'En attente' },
+        { name: 'Youssef Chraibi', school: 'INPT', status: 'Refusé' },
+        { name: 'Nadia El Idrissi', school: 'ENSIAS', status: 'Accepté' },
+      ],
+      offres: [
+        { id: 'ocp-o1', titre: 'Stage Data Science', filiere: 'IA / Big Data', duree: '2 mois', active: true },
+        { id: 'ocp-o2', titre: 'Stage Génie Civil', filiere: 'Génie Civil', duree: '3 mois', active: true },
+        { id: 'ocp-o3', titre: 'Stage Automatisme', filiere: 'Électronique', duree: '2 mois', active: true },
+        { id: 'ocp-o4', titre: 'Stage Finance & Contrôle', filiere: 'Finance', duree: '2 mois', active: false },
+        { id: 'ocp-o5', titre: 'Stage Développement Web', filiere: 'Informatique', duree: '3 mois', active: true },
+        { id: 'ocp-o6', titre: 'Stage RH & Communication', filiere: 'Management', duree: '2 mois', active: true },
+        { id: 'ocp-o7', titre: 'Stage Logistique', filiere: 'Supply Chain', duree: '3 mois', active: true },
+        { id: 'ocp-o8', titre: 'Stage Sécurité Industrielle', filiere: 'HSE', duree: '2 mois', active: false },
+      ]
+    },
+    wafa: {
+      name: 'Wafasalaf',
+      schools: ['ENSIAS', 'EMI', 'ISCAE', 'HEC Casablanca', 'ENCG Rabat'],
+      students: [
+        { name: 'Leila Ouazzani', school: 'ENSIAS', status: 'Accepté' },
+        { name: 'Tariq Mansouri', school: 'ISCAE', status: 'En attente' },
+      ],
+      offres: [
+        { id: 'wafa-o1', titre: 'Stage Analyse de Risques', filiere: 'Finance / Actuariat', duree: '2 mois', active: true },
+        { id: 'wafa-o2', titre: 'Stage Développement Mobile', filiere: 'Informatique', duree: '3 mois', active: true },
+        { id: 'wafa-o3', titre: 'Stage Marketing Digital', filiere: 'Marketing', duree: '2 mois', active: false },
+      ]
+    },
+    nova: {
+      name: 'NovatechDev',
+      schools: ['ENSIAS', 'FST Rabat'],
+      students: [
+        { name: 'Amine Tazi', school: 'ENSIAS', status: 'En attente' },
+        { name: 'Rania Benjelloun', school: 'FST Rabat', status: 'En attente' },
+      ],
+      offres: [
+        { id: 'nova-o1', titre: 'Stage Fullstack JS', filiere: 'Informatique', duree: '3 mois', active: false },
+      ]
+    }
+  };
+
+  /* État runtime des offres (modifiable via toggle) */
+  const offresState = {};
+  Object.values(entrepriseData).forEach(e => {
+    if (e.offres) e.offres.forEach(o => { offresState[o.id] = o.active; });
+  });
+
+  function toggleOffreIndividuelle(offreId, btn) {
+    offresState[offreId] = !offresState[offreId];
+    const isNowOn = offresState[offreId];
+    btn.classList.toggle('on', isNowOn);
+    const label = btn.nextElementSibling;
+    if (label) {
+      label.textContent = isNowOn ? 'Active' : 'Désactivée';
+      label.style.color = isNowOn ? 'var(--success)' : 'var(--muted)';
+    }
+    const row = btn.closest('[data-offre-id]');
+    if (row) row.style.opacity = isNowOn ? '1' : '0.5';
+    showToast(isNowOn ? '✅ Offre activée' : '🚫 Offre désactivée');
+  }
+
+  function supprimerOffre(offreId, entId, btn) {
+    if (!confirm('Supprimer définitivement cette offre ?')) return;
+    const data = entrepriseData[entId];
+    if (!data) return;
+    data.offres = data.offres.filter(o => o.id !== offreId);
+    delete offresState[offreId];
+    const row = btn.closest('[data-offre-id]');
+    if (row) {
+      row.style.transition = 'opacity .2s, max-height .3s';
+      row.style.opacity = '0';
+      row.style.overflow = 'hidden';
+      setTimeout(() => {
+        row.remove();
+        /* Mettre à jour le compteur en haut du panneau */
+        const nbActives = (data.offres || []).filter(o => offresState[o.id]).length;
+        const header = document.querySelector('[data-offre-id]')?.closest('[id]');
+        const countEl = document.querySelector('#panel-ent-body [style*="uppercase"]');
+        if (countEl) countEl.textContent = `📋 Offres (${data.offres.length})`;
+        const activeEl = document.querySelector('#panel-ent-body [style*="success"]');
+      }, 220);
+    }
+    showToast('🗑️ Offre supprimée');
+  }
+
+  /* ─── Panneau école ─── */
+  function showEcoleDetail(id, view) {
+    const data   = ecoleData[id];
+    if (!data) return;
+    const panel  = document.getElementById('ecole-detail-panel');
+    const title  = document.getElementById('panel-ecole-title');
+    const sub    = document.getElementById('panel-ecole-sub');
+    const body   = document.getElementById('panel-ecole-body');
+    title.textContent = data.name;
+
+    let html = '';
+    if (view === 'placed' || view === 'all') {
+      sub.textContent = 'Étudiants en stage';
+      html += `<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">🎓 Étudiants placés (${data.placed.length})</div>`;
+      data.placed.forEach(s => {
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div class="avatar-xs" style="background:#1a7a42;font-size:11px;">${s.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${s.name}</div><div style="font-size:12px;color:var(--muted);">${s.filiere}</div></div>
+          <span class="pill p-active" style="font-size:11px;padding:2px 8px;"><span class="pill-dot"></span>${s.company}</span>
+        </div>`;
+      });
+    }
+    if (view === 'notplaced' || view === 'all') {
+      if (view === 'notplaced') sub.textContent = 'Étudiants sans stage';
+      html += `<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:${view==='all'?'20px':0} 0 10px;">⚠️ Sans stage (${data.notplaced.length})</div>`;
+      data.notplaced.forEach(s => {
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div class="avatar-xs" style="background:var(--warning);font-size:11px;">${s.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${s.name}</div><div style="font-size:12px;color:var(--muted);">${s.filiere}</div></div>
+          <span style="font-size:12px;color:var(--muted);">${s.candidatures} candid.</span>
+        </div>`;
+      });
+    }
+    if (view === 'partners' || view === 'all') {
+      if (view === 'partners') sub.textContent = 'Entreprises partenaires';
+      html += `<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:${view==='all'?'20px':0} 0 10px;">🏢 Entreprises partenaires (${data.partners.length})</div>`;
+      data.partners.forEach(p => {
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+          <div class="avatar-xs" style="background:#305A80;font-size:11px;">${p.slice(0,2).toUpperCase()}</div>
+          <span style="font-size:13px;font-weight:500;flex:1;">${p}</span>
+          <span class="pill p-active" style="font-size:11px;"><span class="pill-dot"></span>Partenaire</span>
+        </div>`;
+      });
+    }
+
+    body.innerHTML = html;
+    panel.style.display = 'flex';
+    document.getElementById('ecole-overlay-bg').style.display = 'block';
+  }
+
+  function closeEcolePanel() {
+    document.getElementById('ecole-detail-panel').style.display = 'none';
+    document.getElementById('ecole-overlay-bg').style.display = 'none';
+  }
+
+  /* ─── Panneau entreprise ─── */
+  function showEntrepriseDetail(id, view) {
+    const data  = entrepriseData[id];
+    if (!data) return;
+    const panel = document.getElementById('entreprise-detail-panel');
+    const title = document.getElementById('panel-ent-title');
+    const sub   = document.getElementById('panel-ent-sub');
+    const body  = document.getElementById('panel-ent-body');
+    title.textContent = data.name;
+
+    let html = '';
+
+    if (view === 'offres' || view === 'all') {
+      sub.textContent = 'Gestion des offres';
+      const offres = data.offres || [];
+      const entId  = id;
+      const nbActives = offres.filter(o => offresState[o.id]).length;
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">📋 Offres (${offres.length})</div>
+        <span style="font-size:12px;color:var(--success);font-weight:600;">${nbActives} active${nbActives>1?'s':''}</span>
+      </div>`;
+      offres.forEach(o => {
+        const isOn = offresState[o.id];
+        html += `<div data-offre-id="${o.id}" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);opacity:${isOn?'1':'0.5'};transition:opacity .2s;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">${o.titre}</div>
+            <div style="font-size:11.5px;color:var(--muted);">${o.filiere} · ${o.duree}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <button class="toggle ${isOn?'on':''}" onclick="toggleOffreIndividuelle('${o.id}',this)" title="${isOn?'Désactiver':'Activer'} cette offre" style="width:36px;height:20px;border-radius:10px;"></button>
+            <span style="font-size:11.5px;font-weight:600;width:66px;color:${isOn?'var(--success)':'var(--muted)'};">${isOn?'Active':'Désactivée'}</span>
+            <button onclick="supprimerOffre('${o.id}','${entId}',this)" class="action-btn danger" title="Supprimer cette offre" style="width:26px;height:26px;border-radius:6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </div>
+        </div>`;
+      });
+      if (view === 'all') html += '<div style="margin-top:20px;"></div>';
+    }
+
+    if (view === 'schools' || view === 'all') {
+      if (view === 'schools') sub.textContent = 'Écoles partenaires';
+      html += `<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">🏫 Écoles partenaires (${data.schools.length})</div>`;
+      data.schools.forEach(s => {
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+          <div class="avatar-xs" style="background:#9B1D20;font-size:11px;">${s.slice(0,2).toUpperCase()}</div>
+          <span style="font-size:13px;font-weight:500;flex:1;">${s}</span>
+          <span class="pill p-ecole" style="font-size:11px;"><span class="pill-dot"></span>Partenaire</span>
+        </div>`;
+      });
+      if (view === 'all') html += '<div style="margin-top:20px;"></div>';
+    }
+    if (view === 'students' || view === 'all') {
+      if (view === 'students') sub.textContent = 'Étudiants candidats';
+      const colors = { 'Accepté':'p-active','En attente':'p-pending','Refusé':'p-inactive' };
+      html += `<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">👤 Étudiants candidats (${data.students.length})</div>`;
+      data.students.forEach(s => {
+        const pc = colors[s.status] || 'p-pending';
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div class="avatar-xs" style="background:var(--accent);font-size:11px;">${s.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${s.name}</div><div style="font-size:12px;color:var(--muted);">${s.school}</div></div>
+          <span class="pill ${pc}" style="font-size:11px;padding:2px 8px;"><span class="pill-dot"></span>${s.status}</span>
+        </div>`;
+      });
+    }
+
+    body.innerHTML = html;
+    panel.style.display = 'flex';
+    document.getElementById('ent-overlay-bg').style.display = 'block';
+  }
+
+  function closeEntreprisePanel() {
+    document.getElementById('entreprise-detail-panel').style.display = 'none';
+    document.getElementById('ent-overlay-bg').style.display = 'none';
+  }
+
+  /* ─── Toast notification ─── */
+  function showToast(msg) {
+    let t = document.getElementById('admin-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'admin-toast';
+      t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; });
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 2800);
+  }
+
+  /* ─── COURRIER — données mock offres en attente ─── */
+  const courrierOffres = [
+    { id:'c1', entreprise:'OCP Group',    secteur:'Industrie / Mining',   titre:'Stage Génie Minier',       filiere:'Génie Civil / Mines',   duree:'3 mois', date:'14 mai 2026', statut:'wait',   avatar:'OC', color:'#305A80', places:2, contact:'rh@ocp.ma',       description:"Participation aux opérations d'extraction et d'optimisation des procédés miniers sur le site de Khouribga. Le stagiaire travaillera en binôme avec un ingénieur senior.", competences:['AutoCAD','Géologie de base','Travail en équipe','Sécurité HSE'] },
+    { id:'c2', entreprise:'Wafasalaf',    secteur:'Finance / Crédit',     titre:'Stage Analyse Crédit',     filiere:'Finance / Actuariat',   duree:'2 mois', date:'13 mai 2026', statut:'wait',   avatar:'WF', color:'#305A80', places:1, contact:'rh@wafa.ma',      description:"Analyse des dossiers de crédit à la consommation, scoring des demandes et reporting mensuel pour la direction risque.", competences:['Excel avancé','Analyse financière','SQL','Rigueur'] },
+    { id:'c3', entreprise:'NovatechDev',  secteur:'IT / Logiciel',        titre:'Stage DevOps & CI/CD',     filiere:'Informatique',          duree:'3 mois', date:'12 mai 2026', statut:'wait',   avatar:'NO', color:'#aaa',    places:1, contact:'jobs@nova.ma',     description:"Mise en place et amélioration des pipelines CI/CD sur une stack Docker/Kubernetes. Le stagiaire participera aux sprints agiles hebdomadaires.", competences:['Docker','Jenkins','Git','Linux'] },
+    { id:'c4', entreprise:'IAM Maroc',    secteur:'Télécommunications',   titre:'Stage Réseaux 5G',         filiere:'Télécom / Réseaux',     duree:'2 mois', date:'11 mai 2026', statut:'wait',   avatar:'IA', color:'#1a7a42', places:3, contact:'stages@iam.ma',    description:"Étude et déploiement des équipements 5G dans les zones pilotes de Casablanca. Collaboration avec les équipes terrain et les fournisseurs d'équipements.", competences:['Protocoles 5G','Huawei RAN','Wireshark','Anglais technique'] },
+    { id:'c5', entreprise:'Attijariwafa', secteur:'Banque / Finance',     titre:'Stage Conformité & AML',   filiere:'Finance / Droit',       duree:'2 mois', date:'10 mai 2026', statut:'wait',   avatar:'AT', color:'#c27b0a', places:2, contact:'stages@atw.ma',    description:"Participation aux activités de conformité réglementaire et de lutte anti-blanchiment. Analyse de transactions suspectes et rédaction de rapports GAFI.", competences:['Réglementation bancaire','Excel','Discrétion','Droit financier'] },
+    { id:'c6', entreprise:'OCP Group',    secteur:'Industrie / Mining',   titre:'Stage Data Analytics',     filiere:'IA / Big Data',         duree:'3 mois', date:'08 mai 2026', statut:'ok',     avatar:'OC', color:'#305A80', places:2, contact:'rh@ocp.ma',       description:"Exploitation des données opérationnelles pour optimiser la chaîne de production. Développement de dashboards Power BI et modèles prédictifs.", competences:['Python','Power BI','SQL','Machine Learning'] },
+    { id:'c7', entreprise:'TechMa',       secteur:'IT / Conseil',         titre:'Stage UX Design',          filiere:'Design / Informatique', duree:'2 mois', date:'05 mai 2026', statut:'refuse', avatar:'TE', color:'#9B1D20', places:1, contact:'rh@techma.ma',    description:"Conception d'interfaces utilisateur pour les applications internes. Réalisation de wireframes et tests utilisateurs.", competences:['Figma','Adobe XD','Recherche UX','Prototypage'], motifRefus:'Informations incomplètes ou incorrectes.', commentaires:[] },
+  ];
+
+  let courrierFilter = 'all';
+  let refusTargetId  = null;
+
+  function renderCourrier() {
+    const list = document.getElementById('courrier-list');
+    if (!list) return;
+    const filtered = courrierOffres.filter(o =>
+      courrierFilter === 'all' ||
+      (courrierFilter === 'wait'   && o.statut === 'wait')   ||
+      (courrierFilter === 'ok'     && o.statut === 'ok')     ||
+      (courrierFilter === 'refuse' && o.statut === 'refuse')
+    );
+
+    /* Mise à jour compteurs */
+    document.getElementById('cnt-all').textContent    = courrierOffres.length;
+    document.getElementById('cnt-wait').textContent   = courrierOffres.filter(o=>o.statut==='wait').length;
+    document.getElementById('cnt-ok').textContent     = courrierOffres.filter(o=>o.statut==='ok').length;
+    document.getElementById('cnt-refuse').textContent = courrierOffres.filter(o=>o.statut==='refuse').length;
+    const nbWait = courrierOffres.filter(o=>o.statut==='wait').length;
+    const badge = document.getElementById('courrier-badge');
+    if (badge) { badge.textContent = nbWait; badge.style.display = nbWait ? '' : 'none'; }
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">📭</div><div class="title">Aucune offre dans cette catégorie</div><div class="sub">Tout est à jour !</div></div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(o => {
+      const isWait   = o.statut === 'wait';
+      const isOk     = o.statut === 'ok';
+      const isRefuse = o.statut === 'refuse';
+
+      const statusBadge = isWait
+        ? `<span class="pill p-pending"><span class="pill-dot"></span>En attente</span>`
+        : isOk
+        ? `<span class="pill p-active"><span class="pill-dot"></span>Acceptée</span>`
+        : `<span class="pill p-inactive"><span class="pill-dot"></span>Refusée</span>`;
+
+      const motifHtml = isRefuse && o.motifRefus
+        ? `<div style="margin-top:10px;padding:10px 14px;background:var(--danger-bg);border-radius:8px;font-size:12px;color:var(--danger);display:flex;gap:8px;align-items:flex-start;">
+             <span style="flex-shrink:0;">🚫</span>
+             <div style="flex:1;">
+               <div><strong>Motif :</strong> ${o.motifRefus}</div>
+               ${(o.commentaires||[]).length > 0 ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(192,57,43,.2);">
+                 ${o.commentaires.map(c=>`<div style="margin-bottom:4px;"><span style="font-weight:600;">Admin :</span> ${c}</div>`).join('')}
+               </div>` : ''}
+             </div>
+           </div>`
+        : '';
+
+      const actions = isWait ? `
+        <div style="display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+          <button onclick="voirDetailOffre('${o.id}')" class="btn-ghost" style="gap:7px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Consulter
+          </button>
+          <button onclick="accepterOffre('${o.id}')" class="btn-primary" style="background:var(--success);gap:7px;flex:1;justify-content:center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
+            Accepter
+          </button>
+          <button onclick="ouvrirRefusModal('${o.id}')" class="btn-ghost" style="color:var(--danger);border-color:var(--danger);flex:1;justify-content:center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Refuser
+          </button>
+        </div>` : `
+        <div style="display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+          <button onclick="voirDetailOffre('${o.id}')" class="btn-ghost" style="gap:7px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Consulter
+          </button>
+          ${isRefuse ? `<button onclick="ouvrirCommentModal('${o.id}')" class="btn-ghost" style="gap:7px;color:var(--accent);border-color:var(--accent);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Commenter
+          </button>` : ''}
+        </div>`;
+
+      return `<div id="courrier-card-${o.id}" data-cstatut="${o.statut}" style="background:var(--white);border:1px solid ${isWait?'var(--warning)':isOk?'var(--success)':'var(--border)'};border-radius:var(--radius);padding:18px 20px;transition:all .3s;">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div class="avatar-xs" style="background:${o.color};font-size:11px;width:36px;height:36px;flex-shrink:0;">${o.avatar}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+              <span style="font-size:13px;font-weight:700;">${o.titre}</span>
+              ${statusBadge}
+            </div>
+            <div style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">${o.entreprise} · ${o.secteur}</div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+              <span style="font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 9px;">🎓 ${o.filiere}</span>
+              <span style="font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 9px;">⏱ ${o.duree}</span>
+              <span style="font-size:12px;color:var(--muted);">📅 Soumise le ${o.date}</span>
+            </div>
+            ${motifHtml}
+            ${actions}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function filterCourrier(type, btn) {
+    courrierFilter = type;
+    document.querySelectorAll('#page-courrier .filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderCourrier();
+  }
+
+  function accepterOffre(id) {
+    const o = courrierOffres.find(x => x.id === id);
+    if (!o) return;
+    o.statut = 'ok';
+    renderCourrier();
+    showToast('✅ Offre acceptée — l\'entreprise sera notifiée');
+  }
+
+  function ouvrirRefusModal(id) {
+    refusTargetId = id;
+    document.getElementById('refus-modal').style.display = 'flex';
+    document.querySelectorAll('input[name="motif"]').forEach(r => r.checked = false);
+    document.getElementById('motif-texte').value = '';
+  }
+
+  function closeRefusModal() {
+    document.getElementById('refus-modal').style.display = 'none';
+    refusTargetId = null;
+  }
+
+  function confirmerRefus() {
+    if (!refusTargetId) return;
+    const o = courrierOffres.find(x => x.id === refusTargetId);
+    if (!o) return;
+    const checked = document.querySelector('input[name="motif"]:checked');
+    const texte   = document.getElementById('motif-texte').value.trim();
+    o.motifRefus  = checked ? checked.value : (texte || 'Aucun motif précisé.');
+    if (texte && checked?.value === 'Autre (voir message ci-dessous).') o.motifRefus = texte;
+    o.statut = 'refuse';
+    closeRefusModal();
+    renderCourrier();
+    showToast('🚫 Offre refusée — l\'entreprise sera notifiée');
+  }
+
+  /* Lancer le rendu courrier à la demande (via showPage) */
+
+  function voirDetailOffre(id) {
+    const o = courrierOffres.find(x => x.id === id);
+    if (!o) return;
+    document.getElementById('detail-panel-titre').textContent      = o.titre;
+    document.getElementById('detail-panel-entreprise').textContent = o.entreprise + ' · ' + o.secteur;
+
+    const statutBadge = o.statut === 'wait'
+      ? `<span class="pill p-pending"><span class="pill-dot"></span>En attente</span>`
+      : o.statut === 'ok'
+      ? `<span class="pill p-active"><span class="pill-dot"></span>Acceptée</span>`
+      : `<span class="pill p-inactive"><span class="pill-dot"></span>Refusée</span>`;
+
+    const competencesHtml = (o.competences || []).map(c =>
+      `<span style="font-size:12px;background:var(--accent-light);color:var(--accent);border-radius:6px;padding:3px 10px;font-weight:500;">${c}</span>`
+    ).join('');
+
+    const motifSection = o.statut === 'refuse' && o.motifRefus
+      ? `<div style="margin-top:20px;">
+           <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Motif de refus</div>
+           <div style="padding:12px 14px;background:var(--danger-bg);border-radius:8px;font-size:13px;color:var(--danger);">🚫 ${o.motifRefus}</div>
+         </div>` : '';
+
+    const commentsSection = o.statut === 'refuse' && (o.commentaires||[]).length > 0
+      ? `<div style="margin-top:16px;">
+           <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Commentaires admin</div>
+           ${o.commentaires.map(c => `
+             <div style="display:flex;gap:10px;margin-bottom:10px;">
+               <div class="avatar-xs" style="background:var(--accent);font-size:11px;flex-shrink:0;">SA</div>
+               <div style="background:var(--accent-light);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);flex:1;">${c}</div>
+             </div>`).join('')}
+         </div>` : '';
+
+    document.getElementById('detail-panel-body').innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div class="avatar-xs" style="background:${o.color};font-size:11px;width:42px;height:42px;">${o.avatar}</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:700;">${o.titre}</div><div style="font-size:12px;color:var(--muted);">${o.entreprise}</div></div>
+        ${statutBadge}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div style="background:var(--surface);border-radius:8px;padding:12px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Filière</div>
+          <div style="font-size:13px;font-weight:600;">🎓 ${o.filiere}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:8px;padding:12px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Durée</div>
+          <div style="font-size:13px;font-weight:600;">⏱ ${o.duree}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:8px;padding:12px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Places</div>
+          <div style="font-size:13px;font-weight:600;">👥 ${o.places} poste${o.places>1?'s':''}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:8px;padding:12px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Contact RH</div>
+          <div style="font-size:12px;font-weight:600;color:var(--blue);">✉ ${o.contact}</div>
+        </div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Description</div>
+        <div style="font-size:13px;line-height:1.6;color:var(--text);">${o.description}</div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Compétences requises</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${competencesHtml}</div>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);padding-top:14px;border-top:1px solid var(--border);">📅 Soumise le ${o.date}</div>
+      ${motifSection}
+      ${commentsSection}
+      ${o.statut === 'wait' ? `
+      <div style="display:flex;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <button onclick="accepterOffre('${o.id}');closeDetailPanel();" class="btn-primary" style="background:var(--success);flex:1;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg> Accepter
+        </button>
+        <button onclick="closeDetailPanel();ouvrirRefusModal('${o.id}');" class="btn-ghost" style="color:var(--danger);border-color:var(--danger);flex:1;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Refuser
+        </button>
+      </div>` : ''}
+      ${o.statut === 'refuse' ? `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <button onclick="closeDetailPanel();ouvrirCommentModal('${o.id}');" class="btn-ghost" style="color:var(--accent);border-color:var(--accent);width:100%;justify-content:center;gap:7px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Ajouter un commentaire
+        </button>
+      </div>` : ''}
+    `;
+    document.getElementById('offre-detail-panel').style.display = 'flex';
+    document.getElementById('offre-detail-overlay').style.display = 'block';
+  }
+
+  function closeDetailPanel() {
+    document.getElementById('offre-detail-panel').style.display = 'none';
+    document.getElementById('offre-detail-overlay').style.display = 'none';
+  }
+
+  let commentTargetId = null;
+
+  function ouvrirCommentModal(id) {
+    commentTargetId = id;
+    document.getElementById('comment-texte').value = '';
+    document.getElementById('comment-modal').style.display = 'flex';
+  }
+
+  function closeCommentModal() {
+    document.getElementById('comment-modal').style.display = 'none';
+    commentTargetId = null;
+  }
+
+  function envoyerCommentaire() {
+    const texte = document.getElementById('comment-texte').value.trim();
+    if (!texte) { showToast('⚠️ Écrivez un commentaire avant d\'envoyer'); return; }
+    const o = courrierOffres.find(x => x.id === commentTargetId);
+    if (!o) return;
+    if (!o.commentaires) o.commentaires = [];
+    o.commentaires.push(texte);
+    closeCommentModal();
+    renderCourrier();
+    showToast('💬 Commentaire ajouté');
+  }
+
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modal-overlay')) {
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+  }
+</script>
+</body>
+</html>
