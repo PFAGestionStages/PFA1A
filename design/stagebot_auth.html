@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StageBot — Connexion</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface:   #f4f8fa;
+    --white:     #ffffff;
+    --border:    #d8e8ef;
+    --text:      #1B3248;
+    --muted:     #5a7a8a;
+    --danger:    #c0392b;
+    --danger-bg: #fdecea;
+    --success:   #0f9e5a;
+    --success-bg:#e6f7ef;
+    --radius:    12px;
+    --radius-sm: 8px;
+    --accent:       #305A80;
+    --accent-light: #e8f2f6;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'DM Sans',sans-serif;
+    background:var(--surface); color:var(--text);
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .bg-deco { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .bg-s { position:absolute; border-radius:50%; opacity:.05; }
+  .bg-s1 { width:540px; height:540px; background:#1B3248; top:-180px; right:-120px; }
+  .bg-s2 { width:360px; height:360px; background:#305A80; bottom:-80px; left:-80px; }
+
+  .card {
+    background:var(--white); border-radius:20px;
+    border:1px solid var(--border);
+    width:100%; max-width:480px;
+    box-shadow:0 2px 24px rgba(27,50,72,.08);
+    position:relative; z-index:1; overflow:hidden;
+  }
+
+  /* HEADER */
+  .card-head {
+    padding:22px 26px 16px;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:12px;
+  }
+  .logo-box {
+    width:38px; height:38px; border-radius:10px;
+    background:var(--text);
+    display:flex; align-items:center; justify-content:center;
+    font-size:19px; flex-shrink:0;
+  }
+  .logo-name    { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; color:var(--text); }
+  .logo-sub     { font-size:11px; color:var(--muted); margin-top:1px; }
+  .role-pill    { margin-left:auto; padding:4px 11px; border-radius:20px; font-size:11px; font-weight:600; color:#fff; background:var(--accent); display:none; white-space:nowrap; }
+  .role-pill.on { display:inline-block; }
+
+  /* ROLE SELECTOR */
+  .role-wrap { padding:20px 26px 4px; }
+  .sec-lbl { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+  .role-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+
+  .role-card {
+    position:relative;
+    border-radius:var(--radius);
+    border:1.5px solid var(--border);
+    background:var(--white);
+    padding:14px 14px 13px;
+    cursor:pointer;
+    transition:border-color .2s, background .2s, box-shadow .2s;
+    display:flex; flex-direction:column; align-items:flex-start; gap:10px;
+    font-family:inherit; text-align:left;
+  }
+  .role-card:hover  { border-color:var(--rc-accent); background:var(--rc-bg); }
+  .role-card.active { border-color:var(--rc-accent); background:var(--rc-bg); box-shadow:0 0 0 2px var(--rc-accent) inset; }
+  .role-card.active .rc-tick { opacity:1; transform:scale(1); }
+
+  /* Per-role variables */
+  .role-card[data-role="admin"]   { --rc-accent:#4A2D8F; --rc-bg:#f0ecfb; --rc-icon-bg:#4A2D8F; }
+  .role-card[data-role="school"]  { --rc-accent:#9B1D20; --rc-bg:#fdecea; --rc-icon-bg:#9B1D20; }
+  .role-card[data-role="company"] { --rc-accent:#2c6e82; --rc-bg:#E0FBFC; --rc-icon-bg:#2c6e82; }
+  .role-card[data-role="student"] { --rc-accent:#1B3248; --rc-bg:#e8f2f6; --rc-icon-bg:#1B3248; }
+
+  /* Icon circle */
+  .rc-ico {
+    width:42px; height:42px; border-radius:10px;
+    background:var(--rc-bg); border:1.5px solid var(--rc-accent);
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s;
+    flex-shrink:0;
+  }
+  .role-card.active .rc-ico,
+  .role-card:hover  .rc-ico { background:var(--rc-accent); }
+  .rc-ico svg { width:20px; height:20px; stroke:var(--rc-accent); transition:stroke .2s; }
+  .role-card.active .rc-ico svg,
+  .role-card:hover  .rc-ico svg { stroke:#fff; }
+
+  .rc-name { font-size:13px; font-weight:600; color:var(--text); transition:color .2s; }
+  .rc-desc { font-size:11px; color:var(--muted); margin-top:2px; line-height:1.4; }
+  .role-card.active .rc-name,
+  .role-card:hover  .rc-name { color:var(--rc-accent); }
+
+  /* Check tick */
+  .rc-tick {
+    position:absolute; top:9px; right:9px;
+    width:18px; height:18px; border-radius:50%;
+    background:var(--rc-accent);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transform:scale(.7); transition:opacity .2s, transform .2s;
+  }
+  .rc-tick svg { width:10px; height:10px; stroke:#fff; stroke-width:2.5; fill:none; }
+
+  .student-note {
+    display:none; font-size:11px; color:var(--muted);
+    background:rgba(226,92,64,.08); border:1px solid rgba(226,92,64,.25);
+    border-radius:8px; padding:8px 11px; line-height:1.5;
+  }
+
+  /* TABS */
+  .tab-bar { display:flex; border-bottom:1px solid var(--border); padding:0 26px; }
+  .tab-btn {
+    flex:1; padding:11px 0; border:none; background:none;
+    font-family:inherit; font-size:13.5px; font-weight:500; color:var(--muted);
+    cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+    transition:color .18s, border-color .18s;
+  }
+  .tab-btn.on { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+  /* FORM */
+  .form-body { padding:20px 26px 24px; }
+  .no-msg { text-align:center; padding:22px 0; color:var(--muted); font-size:13px; line-height:1.7; }
+  .no-msg i { font-size:28px; display:block; margin-bottom:8px; }
+  .flds { display:none; }
+
+  /* ALERTS */
+  .al { display:none; align-items:center; gap:8px; padding:9px 12px; border-radius:var(--radius-sm); font-size:12.5px; margin-bottom:13px; border:1px solid; }
+  .al.on { display:flex; }
+  .al.err { background:var(--danger-bg); color:var(--danger); border-color:#f5b7b1; }
+  .al.ok  { background:var(--success-bg); color:var(--success); border-color:#a9dfbf; }
+  .al svg { width:15px; height:15px; flex-shrink:0; }
+
+  /* DOTS */
+  .dotrow { display:none; align-items:center; gap:6px; margin-bottom:11px; }
+  .dotrow.on { display:flex; }
+  .d-l { font-size:11.5px; color:var(--muted); }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--border); transition:background .2s; }
+  .dot.bad { background:var(--danger); }
+
+  /* FIELDS */
+  .field { margin-bottom:13px; }
+  .field label { display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; }
+  .field input, .field select {
+    width:100%; padding:9px 13px;
+    border:1px solid var(--border); border-radius:var(--radius-sm);
+    font-family:inherit; font-size:13.5px; color:var(--text);
+    background:var(--white); outline:none;
+    transition:border-color .18s, box-shadow .18s;
+  }
+  .field input:focus, .field select:focus {
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-light);
+  }
+  .pw-w { position:relative; }
+  .pw-w input { padding-right:42px; }
+  .pw-eye { position:absolute; right:11px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--muted); font-size:16px; padding:4px; line-height:1; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .pwstr { display:none; margin-top:5px; }
+  .pwstr.on { display:block; }
+  .str-bar { height:3px; border-radius:3px; background:var(--border); }
+  .str-fill { height:100%; border-radius:3px; transition:width .3s, background .3s; width:0; }
+  .str-lbl { font-size:11px; color:var(--muted); margin-top:3px; }
+  .frow { text-align:right; margin-top:-5px; margin-bottom:11px; }
+  .frow a { font-size:12px; color:var(--accent); text-decoration:none; }
+  .frow a:hover { text-decoration:underline; }
+  .trow { display:flex; align-items:center; gap:8px; margin-bottom:14px; font-size:12.5px; color:var(--muted); cursor:pointer; }
+  .trow input { width:14px; height:14px; accent-color:var(--accent); cursor:pointer; }
+  .trow a { color:var(--accent); }
+
+  /* SUBMIT */
+  .btn-go {
+    width:100%; padding:11px;
+    background:var(--accent); color:#fff;
+    border:none; border-radius:var(--radius-sm);
+    font-family:inherit; font-size:14px; font-weight:600;
+    cursor:pointer; transition:filter .18s, transform .12s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-go:hover { filter:brightness(1.1); }
+  .btn-go:active { transform:scale(.99); }
+  .btn-go:disabled { opacity:.55; cursor:not-allowed; filter:none; }
+  .swrow { text-align:center; margin-top:13px; font-size:12.5px; color:var(--muted); }
+  .swrow a { color:var(--accent); margin-left:4px; }
+
+  /* EXTRA SCREENS */
+  .locked, .fscr, .rscr { display:none; padding:26px 26px 30px; }
+  .locked.on, .fscr.on, .rscr.on { display:block; }
+  .ctr { text-align:center; }
+  .big-i { font-size:46px; display:block; margin-bottom:14px; }
+  .stitle { font-family:'Syne',sans-serif; font-size:19px; font-weight:700; margin-bottom:8px; }
+  .sdesc  { font-size:13px; color:var(--muted); line-height:1.65; margin-bottom:20px; }
+  .cd { font-size:30px; font-weight:700; color:var(--danger); font-variant-numeric:tabular-nums; margin-bottom:22px; }
+  .btn-sec { width:100%; padding:10px; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:13.5px; font-weight:500; cursor:pointer; transition:background .15s; margin-top:8px; }
+  .btn-sec:hover { background:var(--border); }
+  .back-btn { display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:var(--muted); background:none; border:none; cursor:pointer; font-family:inherit; margin-bottom:18px; padding:0; }
+  .back-btn:hover { color:var(--text); }
+  .back-btn svg { width:13px; height:13px; }
+  .ferr { display:none; align-items:center; gap:8px; padding:9px 12px; border-radius:var(--radius-sm); font-size:12.5px; margin-bottom:13px; background:var(--danger-bg); color:var(--danger); border:1px solid #f5b7b1; }
+  .ferr.on { display:flex; }
+
+  @media(max-width:500px) {
+    .card-head,.role-wrap,.form-body,.locked,.fscr,.rscr { padding-left:16px; padding-right:16px; }
+    .tab-bar { padding:0 16px; }
+    .two { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-deco">
+  <div class="bg-s bg-s1"></div>
+  <div class="bg-s bg-s2"></div>
+</div>
+
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="card-head">
+    <div class="logo-box">🤖</div>
+    <div>
+      <div class="logo-name">StageBot</div>
+      <div class="logo-sub">Plateforme de gestion des stages</div>
+    </div>
+    <span class="role-pill" id="rpill"></span>
+  </div>
+
+  <!-- ══ MAIN ══ -->
+  <div id="main">
+
+    <div class="role-wrap">
+      <div class="sec-lbl">Sélectionnez votre espace</div>
+      <div class="role-grid">
+
+        <button class="role-card" data-role="admin" onclick="pick('admin',this)">
+          <div class="rc-tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="rc-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="rc-name">Administrateur</div>
+            <div class="rc-desc">Gestion globale de la plateforme</div>
+          </div>
+        </button>
+
+        <button class="role-card" data-role="school" onclick="pick('school',this)">
+          <div class="rc-tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="rc-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3.33 2 8.67 2 12 0v-5"/>
+            </svg>
+          </div>
+          <div>
+            <div class="rc-name">École</div>
+            <div class="rc-desc">Suivi des étudiants et stages</div>
+          </div>
+        </button>
+
+        <button class="role-card" data-role="company" onclick="pick('company',this)">
+          <div class="rc-tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="rc-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              <path d="M2 14h20"/>
+            </svg>
+          </div>
+          <div>
+            <div class="rc-name">Entreprise</div>
+            <div class="rc-desc">Publication et gestion des offres</div>
+          </div>
+        </button>
+
+        <button class="role-card" data-role="student" onclick="pick('student',this)">
+          <div class="rc-tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="rc-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <div class="rc-name">Étudiant</div>
+            <div class="rc-desc">Recherche et candidature de stage</div>
+          </div>
+        </button>
+
+      </div>
+      <div class="student-note" id="snote">
+        👋 Les étudiants accèdent via les identifiants fournis par leur école — inscription non disponible.
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tab-bar">
+      <button class="tab-btn on" id="tl" onclick="setTab('login')">Connexion</button>
+      <button class="tab-btn" id="ts" onclick="setTab('signup')">Inscription</button>
+    </div>
+
+    <div class="form-body">
+      <div class="no-msg" id="nomsg">
+        <i>☝️</i>
+        Choisissez votre type de compte<br>pour accéder au formulaire
+      </div>
+
+      <div class="flds" id="flds">
+
+        <div class="al err" id="aerr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16.01"/></svg><span id="aet"></span></div>
+        <div class="al ok"  id="aok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="aot"></span></div>
+
+        <div class="dotrow" id="drow">
+          <span class="d-l">Tentatives :</span>
+          <div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div>
+        </div>
+
+        <div class="two su" id="fn"><div class="field"><label>Prénom</label><input type="text" id="ifn" placeholder="Prénom"></div><div class="field"><label>Nom</label><input type="text" id="iln" placeholder="Nom"></div></div>
+        <div class="field su" id="fo" style="display:none"><label id="olbl">Organisation</label><input type="text" id="iorg" placeholder=""></div>
+        <div class="field su" id="ffi" style="display:none"><label>Filière principale</label><select id="ifil"><option value="">Sélectionner</option><option>Informatique</option><option>Génie Civil</option><option>Finance</option><option>Marketing</option><option>Ressources Humaines</option><option>Autre</option></select></div>
+        <div class="field su" id="fse" style="display:none"><label>Secteur d'activité</label><select id="isec"><option value="">Sélectionner</option><option>Technologies &amp; IT</option><option>Finance &amp; Banque</option><option>Industrie</option><option>Santé</option><option>Commerce &amp; Distribution</option><option>Autre</option></select></div>
+
+        <div class="field"><label>Adresse e-mail</label><input type="email" id="iem" placeholder="exemple@domaine.com"></div>
+
+        <div class="field"><label>Mot de passe</label>
+          <div class="pw-w"><input type="password" id="ipw" placeholder="••••••••" oninput="pwStr()"><button class="pw-eye" type="button" onclick="togPw('ipw',this)">👁️</button></div>
+          <div class="pwstr" id="pws"><div class="str-bar"><div class="str-fill" id="sf"></div></div><div class="str-lbl" id="sl"></div></div>
+        </div>
+
+        <div class="field su" id="fc"><label>Confirmer le mot de passe</label><div class="pw-w"><input type="password" id="ico" placeholder="••••••••"><button class="pw-eye" type="button" onclick="togPw('ico',this)">👁️</button></div></div>
+
+        <div class="frow" id="flink"><a href="#" onclick="goFg();return false;">Mot de passe oublié ?</a></div>
+
+        <label class="trow su" id="fterms" for="iterms"><input type="checkbox" id="iterms"> J'accepte les <a href="#" onclick="return false;">conditions d'utilisation</a></label>
+
+        <button class="btn-go" id="bsub" onclick="doSub()"><span id="slbl">Se connecter</span></button>
+        <div class="swrow" id="swrow"><span id="swtxt">Pas encore de compte ?</span><a href="#" id="swlnk" onclick="togTab();return false;">Créer un compte</a></div>
+
+      </div>
+    </div>
+  </div><!-- /main -->
+
+  <!-- ══ LOCKED ══ -->
+  <div class="locked" id="lkd">
+    <div class="ctr">
+      <span class="big-i">🔒</span>
+      <div class="stitle" style="color:var(--danger)">Compte temporairement bloqué</div>
+      <div class="sdesc">Vous avez saisi un mot de passe incorrect 3 fois consécutives.<br>Votre accès sera restauré dans :</div>
+      <div class="cd" id="cdtxt">05:00</div>
+      <button class="btn-go" style="margin-bottom:0" onclick="goFgLk()">Réinitialiser mon mot de passe</button>
+      <button class="btn-sec" onclick="unlkNow()" style="font-size:11.5px;color:var(--muted)">Déverrouiller (démo)</button>
+    </div>
+  </div>
+
+  <!-- ══ FORGOT ══ -->
+  <div class="fscr" id="fscr">
+    <button class="back-btn" onclick="backMain()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Retour à la connexion</button>
+    <div class="stitle">Mot de passe oublié</div>
+    <div class="sdesc">Saisissez votre adresse e-mail. Nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe.</div>
+    <div class="ferr" id="ferr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16.01"/></svg><span id="fert">Adresse e-mail invalide.</span></div>
+    <div class="field"><label>Adresse e-mail</label><input type="email" id="fem" placeholder="exemple@domaine.com"></div>
+    <button class="btn-go" id="fbtn" onclick="doFg()">Envoyer le lien de réinitialisation</button>
+    <div style="text-align:center;margin-top:11px;"><a href="#" style="font-size:12px;color:var(--muted)" onclick="backMain();return false;">← Retour</a></div>
+  </div>
+
+  <!-- ══ RESET SUCCESS ══ -->
+  <div class="rscr" id="rscr">
+    <div class="ctr">
+      <span class="big-i">📬</span>
+      <div class="stitle">E-mail envoyé !</div>
+      <div class="sdesc">Un lien de réinitialisation a été envoyé à<br><strong id="rem"></strong><br><br>Vérifiez votre boîte de réception et vos spams.<br>Le lien est valide pendant <strong>30 minutes</strong>.</div>
+      <button class="btn-go" style="margin-bottom:0" onclick="backMain()">Retour à la connexion</button>
+      <button class="btn-sec" id="rsbtn" onclick="doResend()">Renvoyer l'e-mail</button>
+    </div>
+  </div>
+
+</div><!-- /card -->
+
+<script>
+var role=null, tab='login', fails=0, tmr=null;
+
+var RC = {
+  admin:   {accent:'#4A2D8F',light:'#f0ecfb',pill:'🛡️ Admin',      org:null,                fil:0,sec:0},
+  school:  {accent:'#9B1D20',light:'#fdecea',pill:'🎓 École',       org:"Nom de l'école",    fil:1,sec:0},
+  company: {accent:'#2c6e82',light:'#E0FBFC',pill:'🏢 Entreprise',  org:"Nom de l'entreprise",fil:0,sec:1},
+  student: {accent:'#1B3248',light:'#e8f2f6',pill:'👨‍🎓 Étudiant',   org:null,                fil:0,sec:0},
+};
+
+function sa(k,v){document.documentElement.style.setProperty(k,v);}
+
+function pick(r,btn){
+  role=r;
+  document.querySelectorAll('.role-card').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  var c=RC[r];
+  sa('--accent',c.accent); sa('--accent-light',c.light);
+  var p=document.getElementById('rpill');
+  p.textContent=c.pill; p.style.background=c.accent; p.classList.add('on');
+  var ts=document.getElementById('ts');
+  var sn=document.getElementById('snote');
+  if(r==='student'){ts.disabled=true;sn.style.display='block';if(tab==='signup')setTab('login');}
+  else{ts.disabled=false;sn.style.display='none';}
+  document.getElementById('nomsg').style.display='none';
+  document.getElementById('flds').style.display='block';
+  resetAl(); resetFails(); renderTab();
+}
+
+function setTab(t){
+  if(t==='signup'&&role==='student')return;
+  tab=t;
+  document.getElementById('tl').classList.toggle('on',t==='login');
+  document.getElementById('ts').classList.toggle('on',t==='signup');
+  renderTab();
+}
+function togTab(){setTab(tab==='login'?'signup':'login');}
+
+function renderTab(){
+  var L=tab==='login';
+  document.querySelectorAll('.su').forEach(function(el){el.style.display=L?'none':'';});
+  var c=role?RC[role]:{};
+  var fo=document.getElementById('fo'),ffi=document.getElementById('ffi'),fse=document.getElementById('fse');
+  if(!L&&c.org){fo.style.display='block';document.getElementById('olbl').textContent=c.org;document.getElementById('iorg').placeholder=c.org;}else{fo.style.display='none';}
+  if(!L&&c.fil){ffi.style.display='block';}else{ffi.style.display='none';}
+  if(!L&&c.sec){fse.style.display='block';}else{fse.style.display='none';}
+  document.getElementById('pws').classList.toggle('on',!L);
+  document.getElementById('flink').style.display=L?'block':'none';
+  document.getElementById('slbl').textContent=L?'Se connecter':'Créer mon compte';
+  var sw=document.getElementById('swrow');
+  if(role==='student'){sw.style.display='none';}else{
+    sw.style.display='block';
+    document.getElementById('swtxt').textContent=L?'Pas encore de compte ?':'Déjà un compte ?';
+    document.getElementById('swlnk').textContent=L?'Créer un compte':'Se connecter';
+  }
+  document.getElementById('drow').classList.toggle('on',L&&fails>0);
+  resetAl(); document.getElementById('bsub').disabled=false;
+}
+
+function doSub(){resetAl();if(!role)return;tab==='login'?doLogin():doSignup();}
+
+function doLogin(){
+  var em=document.getElementById('iem').value.trim();
+  var pw=document.getElementById('ipw').value;
+  if(!em||!pw){showErr('Veuillez remplir tous les champs.');return;}
+  var ok=(em==='test@stagebot.ma'&&pw==='motdepasse');
+  if(ok){showOk('Connexion réussie ! Redirection en cours…');document.getElementById('bsub').disabled=true;}
+  else{
+    fails++; updDots(); document.getElementById('drow').classList.add('on');
+    if(fails>=3){setTimeout(showLk,500);}
+    else{var r=3-fails;showErr('Identifiants incorrects. Il vous reste <strong>'+r+'</strong> tentative'+(r>1?'s':'')+' avant blocage.');}
+  }
+}
+
+function doSignup(){
+  var fn=document.getElementById('ifn').value.trim();
+  var ln=document.getElementById('iln').value.trim();
+  var em=document.getElementById('iem').value.trim();
+  var pw=document.getElementById('ipw').value;
+  var co=document.getElementById('ico').value;
+  var tr=document.getElementById('iterms').checked;
+  if(!fn||!ln||!em||!pw||!co){showErr('Veuillez remplir tous les champs obligatoires.');return;}
+  if(pw!==co){showErr('Les mots de passe ne correspondent pas.');return;}
+  if(pw.length<8){showErr('Le mot de passe doit contenir au moins 8 caractères.');return;}
+  if(!tr){showErr("Vous devez accepter les conditions d'utilisation.");return;}
+  showOk('Compte créé ! Un e-mail de confirmation vous a été envoyé.');
+  document.getElementById('bsub').disabled=true;
+}
+
+function updDots(){for(var i=1;i<=3;i++)document.getElementById('d'+i).classList.toggle('bad',i<=fails);}
+function resetFails(){fails=0;for(var i=1;i<=3;i++)document.getElementById('d'+i).classList.remove('bad');document.getElementById('drow').classList.remove('on');}
+
+function showLk(){
+  document.getElementById('main').style.display='none';
+  document.getElementById('lkd').classList.add('on');
+  startTmr(300);
+}
+function startTmr(s){
+  updCd(s);
+  tmr=setInterval(function(){s--;updCd(s);if(s<=0){clearInterval(tmr);unlkAuto();}},1000);
+}
+function updCd(s){var m=String(Math.floor(s/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');document.getElementById('cdtxt').textContent=m+':'+ss;}
+function unlkAuto(){document.getElementById('lkd').classList.remove('on');document.getElementById('main').style.display='block';resetFails();showOk('Compte débloqué. Vous pouvez réessayer.');}
+function unlkNow(){clearInterval(tmr);unlkAuto();}
+function goFgLk(){clearInterval(tmr);document.getElementById('lkd').classList.remove('on');openFg();}
+
+function goFg(){openFg();}
+function openFg(){
+  document.getElementById('main').style.display='none';
+  document.getElementById('lkd').classList.remove('on');
+  document.getElementById('rscr').classList.remove('on');
+  document.getElementById('fscr').classList.add('on');
+  document.getElementById('fem').value=document.getElementById('iem').value||'';
+  document.getElementById('ferr').classList.remove('on');
+  var fb=document.getElementById('fbtn');fb.disabled=false;fb.textContent='Envoyer le lien de réinitialisation';
+}
+function doFg(){
+  var em=document.getElementById('fem').value.trim();
+  document.getElementById('ferr').classList.remove('on');
+  if(!em||!em.includes('@')){document.getElementById('fert').textContent='Veuillez saisir une adresse e-mail valide.';document.getElementById('ferr').classList.add('on');return;}
+  var fb=document.getElementById('fbtn');fb.disabled=true;fb.textContent='Envoi en cours…';
+  setTimeout(function(){document.getElementById('rem').textContent=em;document.getElementById('fscr').classList.remove('on');document.getElementById('rscr').classList.add('on');},1100);
+}
+function doResend(){var b=document.getElementById('rsbtn');b.disabled=true;b.textContent='E-mail renvoyé ✓';setTimeout(function(){b.disabled=false;b.textContent="Renvoyer l'e-mail";},5000);}
+function backMain(){
+  document.getElementById('main').style.display='block';
+  document.getElementById('fscr').classList.remove('on');
+  document.getElementById('rscr').classList.remove('on');
+  document.getElementById('lkd').classList.remove('on');
+  var fb=document.getElementById('fbtn');fb.disabled=false;fb.textContent='Envoyer le lien de réinitialisation';
+}
+
+function showErr(m){document.getElementById('aet').innerHTML=m;document.getElementById('aerr').classList.add('on');}
+function showOk(m){document.getElementById('aot').innerHTML=m;document.getElementById('aok').classList.add('on');}
+function resetAl(){document.getElementById('aerr').classList.remove('on');document.getElementById('aok').classList.remove('on');}
+
+function togPw(id,btn){var i=document.getElementById(id);var s=i.type==='password';i.type=s?'text':'password';btn.textContent=s?'🙈':'👁️';}
+
+function pwStr(){
+  if(tab!=='signup')return;
+  var pw=document.getElementById('ipw').value;
+  var s=0;
+  if(pw.length>=8)s++;if(pw.length>=12)s++;
+  if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  var lvs=[{w:'20%',c:'#c0392b',t:'Très faible'},{w:'40%',c:'#e67e22',t:'Faible'},{w:'60%',c:'#f39c12',t:'Moyen'},{w:'80%',c:'#27ae60',t:'Fort'},{w:'100%',c:'#0f9e5a',t:'Très fort'}];
+  var lv=lvs[Math.min(s,4)];
+  var f=document.getElementById('sf');f.style.width=lv.w;f.style.background=lv.c;
+  var l=document.getElementById('sl');l.textContent=pw.length?lv.t:'';l.style.color=lv.c;
+}
+</script>
+</body>
+</html>

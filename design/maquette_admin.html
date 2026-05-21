@@ -584,6 +584,11 @@
     </button>
 
     <div class="nav-label">Modération</div>
+    <button class="nav-item" onclick="showPage('inscriptions', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      Demandes d'inscription
+      <span class="nav-badge warn" id="inscriptions-badge">9</span>
+    </button>
     <button class="nav-item" onclick="showPage('courrier', this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       Courrier offres
@@ -1741,6 +1746,61 @@
       </div>
     </div>
 
+
+    <!-- ════════════════════════════════
+         PAGE: DEMANDES D'INSCRIPTION
+    ════════════════════════════════ -->
+    <div class="page" id="page-inscriptions">
+
+      <!-- Hero -->
+      <div class="admin-hero" style="background:linear-gradient(135deg,#2d6a4f 0%,#1b4332 100%);margin-bottom:24px;">
+        <div class="avatar-lg">📋</div>
+        <div>
+          <div class="hero-name">Demandes d'inscription</div>
+          <div class="hero-role">Création de comptes entreprise &amp; école</div>
+          <div class="hero-sub">Vérifiez et approuvez chaque demande avant activation</div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-n" id="insc-cnt-total">12</div>
+            <div class="hero-stat-l">Total reçues</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-n" id="insc-cnt-wait">9</div>
+            <div class="hero-stat-l">En attente</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-n" id="insc-cnt-ok">2</div>
+            <div class="hero-stat-l">Approuvées</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-n" id="insc-cnt-refuse">1</div>
+            <div class="hero-stat-l">Refusées</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="filter-tabs" style="margin-bottom:0;">
+          <button class="filter-tab active" onclick="filterInscriptions('all',this)">Toutes <span style="font-size:11px;background:var(--surface);color:var(--muted);border-radius:10px;padding:1px 7px;margin-left:3px;" id="fi-all">12</span></button>
+          <button class="filter-tab" onclick="filterInscriptions('entreprise',this)">🏢 Entreprises <span style="font-size:11px;background:var(--surface);color:var(--muted);border-radius:10px;padding:1px 7px;margin-left:3px;" id="fi-ent">8</span></button>
+          <button class="filter-tab" onclick="filterInscriptions('ecole',this)">🏫 Écoles <span style="font-size:11px;background:var(--surface);color:var(--muted);border-radius:10px;padding:1px 7px;margin-left:3px;" id="fi-esc">4</span></button>
+          <button class="filter-tab" onclick="filterInscriptions('wait',this)">En attente <span style="font-size:11px;background:var(--warning-bg);color:var(--warning);border-radius:10px;padding:1px 7px;margin-left:3px;" id="fi-wait">9</span></button>
+          <button class="filter-tab" onclick="filterInscriptions('ok',this)">Approuvées <span style="font-size:11px;background:var(--success-bg);color:var(--success);border-radius:10px;padding:1px 7px;margin-left:3px;" id="fi-ok">2</span></button>
+          <button class="filter-tab" onclick="filterInscriptions('refuse',this)">Refusées <span style="font-size:11px;background:var(--danger-bg);color:var(--danger);border-radius:10px;padding:1px 7px;margin-left:3px;" id="fi-ref">1</span></button>
+        </div>
+        <div class="search-bar" style="margin-left:auto;width:240px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Rechercher une organisation…" oninput="searchInscriptions(this.value)">
+        </div>
+      </div>
+
+      <!-- Liste des demandes -->
+      <div id="inscriptions-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+    </div><!-- /page-inscriptions -->
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -1803,17 +1863,70 @@
   </div>
 </div>
 
+<!-- ═══════════════ MODAL: REFUS INSCRIPTION ═══════════════ -->
+<div style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;" id="insc-refus-modal" onclick="if(event.target===this)closeInscRefusModal()">
+  <div style="background:var(--white);border-radius:16px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Motif de refus</div>
+      <button class="close-btn" onclick="closeInscRefusModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="padding:24px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:13px;color:var(--muted);">Sélectionnez ou rédigez le motif de refus. Il sera transmis au demandeur par email.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13.5px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;transition:background .15s;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
+          <input type="radio" name="insc-motif" value="Documents incomplets ou illisibles." style="margin-top:2px;accent-color:var(--danger);">
+          <span>Documents incomplets ou illisibles.</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13.5px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;transition:background .15s;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
+          <input type="radio" name="insc-motif" value="L'organisation n'est pas reconnue ou référencée." style="margin-top:2px;accent-color:var(--danger);">
+          <span>L'organisation n'est pas reconnue ou référencée.</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13.5px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;transition:background .15s;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
+          <input type="radio" name="insc-motif" value="Un compte existe déjà pour cette organisation." style="margin-top:2px;accent-color:var(--danger);">
+          <span>Un compte existe déjà pour cette organisation.</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13.5px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;transition:background .15s;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
+          <input type="radio" name="insc-motif" value="Autre (voir message ci-dessous)." style="margin-top:2px;accent-color:var(--danger);">
+          <span>Autre (voir message ci-dessous).</span>
+        </label>
+      </div>
+      <textarea id="insc-motif-texte" placeholder="Précisez le motif si nécessaire…" style="width:100%;min-height:80px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);background:var(--surface);resize:vertical;outline:none;line-height:1.5;transition:border-color .15s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+    <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-ghost" onclick="closeInscRefusModal()">Annuler</button>
+      <button class="btn-primary" style="background:var(--danger);border-color:var(--danger);" onclick="confirmerInscRefus()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Envoyer le refus
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PANNEAU DÉTAIL INSCRIPTION ═══════════════ -->
+<div id="insc-overlay-bg" onclick="closeInscDetail()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150;"></div>
+<div id="insc-detail-panel" style="display:none;position:fixed;right:0;top:0;bottom:0;width:420px;background:var(--white);border-left:1px solid var(--border);z-index:160;flex-direction:column;overflow:hidden;box-shadow:-10px 0 40px rgba(0,0,0,.12);">
+  <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;" id="insc-panel-title">Détail de la demande</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="insc-panel-sub"></div>
+    </div>
+    <button class="close-btn" onclick="closeInscDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:24px;" id="insc-panel-body"></div>
+</div>
+
 <script>
   /* ─── Navigation ─── */
   const pageMeta = {
-    dashboard:    { title: 'Statistiques',                sub: "Indicateurs clés de la plateforme" },
-    users:        { title: 'Tous les utilisateurs',     sub: 'CRUD complet · 312 comptes' },
-    ecoles:       { title: 'Gestion des Écoles',        sub: '14 établissements partenaires' },
-    entreprises:  { title: 'Gestion des Entreprises',   sub: '58 entreprises partenaires' },
-    etudiants:    { title: 'Gestion des Étudiants',     sub: '240 étudiants inscrits' },
-    parametres:   { title: 'Paramètres',                sub: 'Configuration de la plateforme' },
-    audit:        { title: "Journal d'audit",            sub: 'Traçabilité complète des actions' },
-    courrier:     { title: 'Courrier — Offres en attente',  sub: 'Validez ou refusez les offres soumises par les entreprises' },
+    dashboard:     { title: 'Statistiques',                      sub: "Indicateurs clés de la plateforme" },
+    users:         { title: 'Tous les utilisateurs',             sub: 'CRUD complet · 312 comptes' },
+    ecoles:        { title: 'Gestion des Écoles',                sub: '14 établissements partenaires' },
+    entreprises:   { title: 'Gestion des Entreprises',           sub: '58 entreprises partenaires' },
+    etudiants:     { title: 'Gestion des Étudiants',             sub: '240 étudiants inscrits' },
+    parametres:    { title: 'Paramètres',                        sub: 'Configuration de la plateforme' },
+    audit:         { title: "Journal d'audit",                   sub: 'Traçabilité complète des actions' },
+    courrier:      { title: 'Courrier — Offres en attente',      sub: 'Validez ou refusez les offres soumises par les entreprises' },
+    inscriptions:  { title: 'Demandes d\'inscription',           sub: 'Approuvez ou refusez les demandes de création de compte entreprise et école' },
   };
 
   function showPage(id, btn) {
@@ -1827,6 +1940,7 @@
       document.getElementById('topbar-sub').textContent   = m.sub;
     }
     if (id === 'courrier') renderCourrier();
+    if (id === 'inscriptions') renderInscriptions();
   }
 
   /* ─── Filters ─── */
@@ -2431,6 +2545,378 @@
     renderCourrier();
     showToast('💬 Commentaire ajouté');
   }
+
+  /* ─────────────────────────────────────────
+     INSCRIPTIONS — Données mock
+  ───────────────────────────────────────── */
+  const inscriptionsDemandes = [
+    {
+      id: 'i1', type: 'entreprise', statut: 'wait',
+      org: 'AlphaTech Solutions', avatar: 'AT', color: '#305A80',
+      secteur: 'IT / Développement logiciel', ville: 'Casablanca',
+      contact: { nom: 'M. Youssef Benali', email: 'y.benali@alphatech.ma', tel: '+212 6 61 23 45 67', poste: 'Directeur RH' },
+      date: '19 mai 2026', rc: 'RC 456789 · Casablanca',
+      description: 'Société de développement logiciel fondée en 2018, spécialisée dans les solutions B2B (ERP, CRM). Cherche à accueillir des stagiaires en développement web et mobile.',
+      docs: ['ICE_AlphaTech.pdf', 'RC_AlphaTech.pdf', 'Statuts_société.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i2', type: 'ecole', statut: 'wait',
+      org: 'ENSA Tanger', avatar: 'EN', color: '#9B1D20',
+      secteur: 'Grande École d\'Ingénieurs · Public', ville: 'Tanger',
+      contact: { nom: 'Pr. Fatima Zhara El Fassi', email: 'f.elfassi@ensatanger.ac.ma', tel: '+212 5 39 39 45 12', poste: 'Responsable stages' },
+      date: '18 mai 2026', rc: 'Établissement public · UM5',
+      description: 'ENSA Tanger est une grande école d\'ingénieurs publique rattachée à l\'Université Abdelmalek Essaâdi. Elle forme des ingénieurs d\'état en informatique, génie civil et génie industriel.',
+      docs: ['Arrêté_création_ENSA.pdf', 'Lettre_directeur.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i3', type: 'entreprise', statut: 'wait',
+      org: 'FinServ Maroc', avatar: 'FS', color: '#c27b0a',
+      secteur: 'Finance / Assurance', ville: 'Rabat',
+      contact: { nom: 'Mme. Sara Idrissi', email: 's.idrissi@finserv.ma', tel: '+212 5 37 22 11 00', poste: 'Chargée RH' },
+      date: '17 mai 2026', rc: 'RC 112233 · Rabat',
+      description: 'Société de services financiers proposant des solutions d\'assurance et de gestion d\'actifs pour les PME marocaines.',
+      docs: ['ICE_FinServ.pdf', 'Agrément_ACAPS.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i4', type: 'entreprise', statut: 'wait',
+      org: 'BioMed Innov', avatar: 'BM', color: '#2d6a4f',
+      secteur: 'Santé / Biotech', ville: 'Casablanca',
+      contact: { nom: 'Dr. Karim Tahri', email: 'k.tahri@biomed-innov.ma', tel: '+212 6 60 98 76 54', poste: 'CEO & Fondateur' },
+      date: '16 mai 2026', rc: 'RC 778899 · Casablanca',
+      description: 'Startup biotech fondée en 2022. Développe des dispositifs médicaux connectés pour le suivi à distance des patients diabétiques.',
+      docs: ['ICE_BioMed.pdf', 'Brevet_dispositif.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i5', type: 'ecole', statut: 'wait',
+      org: 'EST Berrechid', avatar: 'ES', color: '#9B1D20',
+      secteur: 'École Supérieure de Technologie · Public', ville: 'Berrechid',
+      contact: { nom: 'M. Ahmed Bouchama', email: 'a.bouchama@estb.ac.ma', tel: '+212 5 23 30 00 15', poste: 'Coordinateur stages' },
+      date: '15 mai 2026', rc: 'Établissement public · UH2C',
+      description: 'EST Berrechid est un établissement public relevant de l\'Université Hassan II de Casablanca, proposant des DUT en informatique, électrotechnique et maintenance industrielle.',
+      docs: ['Lettre_direction_EST.pdf', 'Accréditation_DUT.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i6', type: 'entreprise', statut: 'wait',
+      org: 'MediaPulse', avatar: 'MP', color: '#6d28d9',
+      secteur: 'Média / Communication digitale', ville: 'Casablanca',
+      contact: { nom: 'Mme. Nadia Berrada', email: 'n.berrada@mediapulse.ma', tel: '+212 6 62 14 28 56', poste: 'Directrice Marketing' },
+      date: '14 mai 2026', rc: 'RC 334455 · Casablanca',
+      description: 'Agence de communication digitale spécialisée dans le marketing d\'influence et la stratégie de contenu pour les marques marocaines.',
+      docs: ['ICE_MediaPulse.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i7', type: 'entreprise', statut: 'wait',
+      org: 'LogiTrans SA', avatar: 'LT', color: '#374151',
+      secteur: 'Logistique / Transport', ville: 'Tanger',
+      contact: { nom: 'M. Hassan Zouaki', email: 'h.zouaki@logitrans.ma', tel: '+212 5 39 90 12 34', poste: 'DRH' },
+      date: '13 mai 2026', rc: 'RC 556677 · Tanger',
+      description: 'Opérateur logistique panafricain avec 3 plateformes au Maroc. Cherche des stagiaires en supply chain, transport et informatique industrielle.',
+      docs: ['ICE_LogiTrans.pdf', 'RC_LogiTrans.pdf', 'Agrément_transit.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i8', type: 'entreprise', statut: 'wait',
+      org: 'GreenEnergy Maroc', avatar: 'GE', color: '#065f46',
+      secteur: 'Énergie renouvelable', ville: 'Agadir',
+      contact: { nom: 'Mme. Houda Ait Brahim', email: 'h.aitbrahim@greenenergy.ma', tel: '+212 6 70 33 22 11', poste: 'Responsable Projets' },
+      date: '12 mai 2026', rc: 'RC 889900 · Agadir',
+      description: 'Entreprise spécialisée dans l\'installation et la maintenance de systèmes solaires photovoltaïques et éoliens pour les secteurs industriel et résidentiel.',
+      docs: ['ICE_GreenEnergy.pdf', 'Certification_IRESEN.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i9', type: 'ecole', statut: 'wait',
+      org: 'ISCAE Casablanca', avatar: 'IS', color: '#9B1D20',
+      secteur: 'Grande École de Commerce · Public', ville: 'Casablanca',
+      contact: { nom: 'Pr. Meryem Ouali', email: 'm.ouali@iscae.ac.ma', tel: '+212 5 22 25 36 47', poste: 'Responsable relations entreprises' },
+      date: '11 mai 2026', rc: 'Établissement public · Ministère Finances',
+      description: 'L\'ISCAE est la grande école de commerce et de gestion de référence au Maroc. Elle forme des cadres supérieurs en management, finance et audit.',
+      docs: ['Lettre_ISCAE.pdf', 'Programme_stages.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i10', type: 'entreprise', statut: 'ok',
+      org: 'DataVision', avatar: 'DV', color: '#305A80',
+      secteur: 'IT / Data Engineering', ville: 'Rabat',
+      contact: { nom: 'M. Mehdi Sqalli', email: 'm.sqalli@datavision.ma', tel: '+212 6 63 44 55 66', poste: 'Head of Talent' },
+      date: '08 mai 2026', rc: 'RC 223344 · Rabat',
+      description: 'Scale-up spécialisée dans l\'ingénierie des données et la valorisation des données pour les banques et assurances.',
+      docs: ['ICE_DataVision.pdf', 'RC_DataVision.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i11', type: 'ecole', statut: 'ok',
+      org: 'EMINES Ben Guerir', avatar: 'EM', color: '#9B1D20',
+      secteur: 'Grande École d\'Ingénieurs · UM6P', ville: 'Ben Guerir',
+      contact: { nom: 'Pr. Omar Hilali', email: 'o.hilali@emines.um6p.ma', tel: '+212 5 24 33 22 11', poste: 'Directeur de l\'école' },
+      date: '05 mai 2026', rc: 'Établissement privé · UM6P',
+      description: 'EMINES est une école d\'ingénieurs rattachée à l\'UM6P, formant des ingénieurs en énergie, mines et systèmes industriels.',
+      docs: ['Accréditation_EMINES.pdf', 'Lettre_direction.pdf'],
+      motifRefus: null,
+    },
+    {
+      id: 'i12', type: 'entreprise', statut: 'refuse',
+      org: 'QuickJob SARL', avatar: 'QJ', color: '#9B1D20',
+      secteur: 'Recrutement / Intérim', ville: 'Casablanca',
+      contact: { nom: 'M. Ali Zidane', email: 'contact@quickjob.ma', tel: '+212 6 00 11 22 33', poste: 'Gérant' },
+      date: '02 mai 2026', rc: 'RC 000001 · Casablanca',
+      description: 'Agence d\'intérim et de placement de personnel temporaire.',
+      docs: ['ICE_QuickJob.pdf'],
+      motifRefus: 'Un compte existe déjà pour cette organisation.',
+    },
+  ];
+
+  let inscFilter = 'all';
+  let inscRefusTargetId = null;
+  let inscSearchQuery = '';
+
+  function renderInscriptions() {
+    const list = document.getElementById('inscriptions-list');
+    if (!list) return;
+
+    const total = inscriptionsDemandes.length;
+    const nbWait = inscriptionsDemandes.filter(d => d.statut === 'wait').length;
+    const nbOk   = inscriptionsDemandes.filter(d => d.statut === 'ok').length;
+    const nbRef  = inscriptionsDemandes.filter(d => d.statut === 'refuse').length;
+    const nbEnt  = inscriptionsDemandes.filter(d => d.type === 'entreprise').length;
+    const nbEsc  = inscriptionsDemandes.filter(d => d.type === 'ecole').length;
+
+    /* counters */
+    const safe = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+    safe('insc-cnt-total', total); safe('insc-cnt-wait', nbWait);
+    safe('insc-cnt-ok',    nbOk);  safe('insc-cnt-refuse', nbRef);
+    safe('fi-all', total); safe('fi-ent', nbEnt); safe('fi-esc', nbEsc);
+    safe('fi-wait', nbWait); safe('fi-ok', nbOk); safe('fi-ref', nbRef);
+
+    /* badge sidebar */
+    const badge = document.getElementById('inscriptions-badge');
+    if (badge) { badge.textContent = nbWait; badge.style.display = nbWait ? '' : 'none'; }
+
+    const filtered = inscriptionsDemandes.filter(d => {
+      const matchFilter = inscFilter === 'all' || d.statut === inscFilter || d.type === inscFilter;
+      const q = inscSearchQuery.toLowerCase();
+      const matchSearch = !q || d.org.toLowerCase().includes(q) || d.contact.nom.toLowerCase().includes(q) || d.secteur.toLowerCase().includes(q);
+      return matchFilter && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">📭</div><div class="title">Aucune demande trouvée</div><div class="sub">Essayez de modifier vos filtres.</div></div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(d => {
+      const isWait   = d.statut === 'wait';
+      const isOk     = d.statut === 'ok';
+      const isRefuse = d.statut === 'refuse';
+      const isEnt    = d.type === 'entreprise';
+
+      const borderCol = isWait ? 'var(--warning)' : isOk ? 'var(--success)' : 'var(--border)';
+
+      const statusBadge = isWait
+        ? `<span class="pill p-pending"><span class="pill-dot"></span>En attente</span>`
+        : isOk
+        ? `<span class="pill p-active"><span class="pill-dot"></span>Approuvée</span>`
+        : `<span class="pill p-inactive"><span class="pill-dot"></span>Refusée</span>`;
+
+      const typeBadge = isEnt
+        ? `<span class="pill p-entreprise" style="font-size:11px;"><span class="pill-dot"></span>Entreprise</span>`
+        : `<span class="pill p-ecole" style="font-size:11px;"><span class="pill-dot"></span>École</span>`;
+
+      const motifHtml = isRefuse && d.motifRefus
+        ? `<div style="margin-top:10px;padding:10px 14px;background:var(--danger-bg);border-radius:8px;font-size:12px;color:var(--danger);display:flex;gap:8px;align-items:center;">
+             🚫 <strong>Motif :</strong>&nbsp;${d.motifRefus}
+           </div>` : '';
+
+      const actions = isWait ? `
+        <div style="display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+          <button onclick="voirInscDetail('${d.id}')" class="btn-ghost" style="gap:6px;font-size:12.5px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Consulter
+          </button>
+          <button onclick="approuverInscription('${d.id}')" class="btn-primary" style="background:var(--success);border-color:var(--success);gap:6px;flex:1;justify-content:center;font-size:12.5px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+            Approuver
+          </button>
+          <button onclick="ouvrirInscRefusModal('${d.id}')" class="btn-ghost" style="color:var(--danger);border-color:var(--danger);gap:6px;flex:1;justify-content:center;font-size:12.5px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Refuser
+          </button>
+        </div>` : `
+        <div style="display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+          <button onclick="voirInscDetail('${d.id}')" class="btn-ghost" style="gap:6px;font-size:12.5px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Consulter
+          </button>
+        </div>`;
+
+      const docsHtml = (d.docs || []).map(doc =>
+        `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 10px;cursor:pointer;" onclick="alert('Ouverture de ${doc}…')">📎 ${doc}</span>`
+      ).join('');
+
+      return `<div id="insc-card-${d.id}" style="background:var(--white);border:1px solid ${borderCol};border-left:4px solid ${borderCol};border-radius:var(--radius);padding:18px 20px;transition:all .3s;">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div class="avatar-xs" style="background:${d.color};font-size:11px;width:40px;height:40px;border-radius:10px;flex-shrink:0;">${d.avatar}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+              <span style="font-size:14px;font-weight:700;">${d.org}</span>
+              ${typeBadge}
+              ${statusBadge}
+            </div>
+            <div style="font-size:12.5px;color:var(--muted);margin-bottom:6px;">
+              ${d.secteur} &nbsp;·&nbsp; 📍 ${d.ville} &nbsp;·&nbsp; 📅 ${d.date}
+            </div>
+            <div style="font-size:12.5px;color:var(--text);margin-bottom:4px;">
+              👤 <strong>${d.contact.nom}</strong> — ${d.contact.poste} &nbsp;
+              <span style="color:var(--muted);">· ${d.contact.email}</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">${docsHtml}</div>
+            ${motifHtml}
+            ${actions}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function filterInscriptions(type, btn) {
+    inscFilter = type;
+    document.querySelectorAll('#page-inscriptions .filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderInscriptions();
+  }
+
+  function searchInscriptions(q) {
+    inscSearchQuery = q;
+    renderInscriptions();
+  }
+
+  function approuverInscription(id) {
+    const d = inscriptionsDemandes.find(x => x.id === id);
+    if (!d) return;
+    d.statut = 'ok';
+    renderInscriptions();
+    showToast('✅ Compte ' + d.type + ' approuvé — ' + d.org + ' sera notifié par email');
+  }
+
+  function ouvrirInscRefusModal(id) {
+    inscRefusTargetId = id;
+    document.getElementById('insc-refus-modal').style.display = 'flex';
+    document.querySelectorAll('input[name="insc-motif"]').forEach(r => r.checked = false);
+    document.getElementById('insc-motif-texte').value = '';
+  }
+
+  function closeInscRefusModal() {
+    document.getElementById('insc-refus-modal').style.display = 'none';
+    inscRefusTargetId = null;
+  }
+
+  function confirmerInscRefus() {
+    if (!inscRefusTargetId) return;
+    const d = inscriptionsDemandes.find(x => x.id === inscRefusTargetId);
+    if (!d) return;
+    const checked = document.querySelector('input[name="insc-motif"]:checked');
+    const texte   = document.getElementById('insc-motif-texte').value.trim();
+    d.motifRefus  = (checked && checked.value !== 'Autre (voir message ci-dessous).') ? checked.value : (texte || 'Aucun motif précisé.');
+    d.statut = 'refuse';
+    closeInscRefusModal();
+    renderInscriptions();
+    showToast('🚫 Demande refusée — ' + d.org + ' sera notifié par email');
+  }
+
+  function voirInscDetail(id) {
+    const d = inscriptionsDemandes.find(x => x.id === id);
+    if (!d) return;
+    const isEnt = d.type === 'entreprise';
+
+    document.getElementById('insc-panel-title').textContent = d.org;
+    document.getElementById('insc-panel-sub').textContent   = (isEnt ? '🏢 Entreprise' : '🏫 École') + ' · ' + d.ville;
+
+    const docsHtml = (d.docs || []).map(doc =>
+      `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface);border-radius:8px;cursor:pointer;border:1px solid var(--border);" onclick="alert('Ouverture de ${doc}…')">
+         <span style="font-size:16px;">📎</span>
+         <span style="font-size:12.5px;font-weight:500;flex:1;">${doc}</span>
+         <button style="font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--white);cursor:pointer;font-family:inherit;">Ouvrir</button>
+       </div>`
+    ).join('');
+
+    const statutBadge = d.statut === 'wait'
+      ? `<span class="pill p-pending"><span class="pill-dot"></span>En attente</span>`
+      : d.statut === 'ok'
+      ? `<span class="pill p-active"><span class="pill-dot"></span>Approuvée</span>`
+      : `<span class="pill p-inactive"><span class="pill-dot"></span>Refusée</span>`;
+
+    const actionsHtml = d.statut === 'wait' ? `
+      <div style="display:flex;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <button onclick="approuverInscription('${d.id}');closeInscDetail();" class="btn-primary" style="background:var(--success);border-color:var(--success);flex:1;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg> Approuver
+        </button>
+        <button onclick="closeInscDetail();ouvrirInscRefusModal('${d.id}');" class="btn-ghost" style="color:var(--danger);border-color:var(--danger);flex:1;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Refuser
+        </button>
+      </div>` : '';
+
+    const motifSection = d.statut === 'refuse' && d.motifRefus
+      ? `<div style="margin-top:16px;"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Motif de refus</div>
+         <div style="padding:12px 14px;background:var(--danger-bg);border-radius:8px;font-size:13px;color:var(--danger);">🚫 ${d.motifRefus}</div></div>` : '';
+
+    document.getElementById('insc-panel-body').innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div class="avatar-xs" style="background:${d.color};font-size:12px;width:44px;height:44px;border-radius:10px;">${d.avatar}</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:700;">${d.org}</div><div style="font-size:12px;color:var(--muted);">${d.secteur}</div></div>
+        ${statutBadge}
+      </div>
+
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Informations générales</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;">
+        <div style="background:var(--surface);border-radius:8px;padding:11px 12px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Ville</div>
+          <div style="font-size:13px;font-weight:600;">📍 ${d.ville}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:8px;padding:11px 12px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Date de demande</div>
+          <div style="font-size:13px;font-weight:600;">📅 ${d.date}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:8px;padding:11px 12px;grid-column:span 2;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">${isEnt ? 'Registre de commerce' : 'Rattachement'}</div>
+          <div style="font-size:13px;font-weight:600;">🗂 ${d.rc}</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Contact référent</div>
+      <div style="background:var(--accent-light);border-radius:10px;padding:14px 16px;margin-bottom:18px;">
+        <div style="font-size:13.5px;font-weight:600;margin-bottom:4px;">${d.contact.nom}</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:2px;">${d.contact.poste}</div>
+        <div style="font-size:12.5px;color:var(--accent);">✉ ${d.contact.email}</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:2px;">📞 ${d.contact.tel}</div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Description</div>
+      <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:18px;">${d.description}</div>
+
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Documents fournis (${d.docs.length})</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:4px;">${docsHtml}</div>
+
+      ${motifSection}
+      ${actionsHtml}
+    `;
+
+    document.getElementById('insc-detail-panel').style.display = 'flex';
+    document.getElementById('insc-overlay-bg').style.display = 'block';
+  }
+
+  function closeInscDetail() {
+    document.getElementById('insc-detail-panel').style.display = 'none';
+    document.getElementById('insc-overlay-bg').style.display = 'none';
+  }
+
+  /* Rendu initial quand on navigue vers la page */
+  /* (appelé aussi depuis showPage) */
 
   function closeModal(e) {
     if (!e || e.target === document.getElementById('modal-overlay')) {
